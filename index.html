@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gang Pepe: Empire Rise</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <!-- Top bar: Enemy Username / Tower HP / Timer -->
+  <header id="topbar">
+    <div class="tb-side tb-enemy">
+      <div class="avatar enemy">🐷</div>
+      <div class="tb-names">
+        <div id="enemy-name">GEGNER</div>
+        <div id="enemy-tier">Neon Destroyers</div>
+        <div id="enemy-elixir"><div id="enemy-elixir-fill"></div></div>
+      </div>
+      <div class="tower-pips" id="enemy-pips"></div>
+    </div>
+    <div class="tb-center">
+      <div id="match-timer">03:00</div>
+      <div id="match-phase">BEREIT</div>
+    </div>
+    <div class="tb-side tb-player">
+      <div class="tower-pips" id="player-pips"></div>
+      <div class="tb-names right">
+        <div id="player-name">DU</div>
+        <div id="player-clan">Gang Pepe · 👑 0</div>
+      </div>
+      <div class="avatar player">🐸</div>
+    </div>
+  </header>
+
+  <!-- Screens -->
+  <main id="screens">
+    <!-- BATTLE -->
+    <section id="tab-battle" class="screen active">
+      <div id="start-overlay">
+        <div class="panel hologram menu">
+          <div class="menu-chars">🐸🔫 🐧💣 👑🐷</div>
+          <h1 class="graffiti">GANG PEPE<br><span>EMPIRE RISE</span></h1>
+          <p class="sub">Ghetto City · Circuit-Arena · 2 Lanes · 3:00 + Overtime</p>
+          <label class="lbl">GEGNER-TIER</label>
+          <div class="tier-row">
+            <button class="tier-btn" data-tier="Schwach">SCHWACH</button>
+            <button class="tier-btn sel" data-tier="Normal">NORMAL</button>
+            <button class="tier-btn" data-tier="Profi">PROFI</button>
+          </div>
+          <div id="bot-preview">vs <b id="bot-name-prev">?</b> · <span id="bot-strat-prev"></span></div>
+          <div id="record-line">Bilanz: 0S/0N/0U</div>
+          <button id="btn-start">⚔ PVP ARENA STARTEN</button>
+          <div class="hint">Karte wählen → auf blaue Hälfte tippen. Elixir lädt 0.35/s (Overtime ×2).</div>
+          <label class="chk"><input type="checkbox" id="opt-sound" checked> Synthwave-Sound (120 → 145 BPM Overtime)</label>
+        </div>
+      </div>
+      <div id="end-overlay" class="hidden">
+        <div class="panel hologram">
+          <h1 id="end-title">SIEG</h1>
+          <p id="end-detail"></p>
+          <button id="btn-rematch">↻ REMATCH</button>
+          <button id="btn-change" class="ghost">Gegner wechseln</button>
+        </div>
+      </div>
+      <canvas id="battle" width="480" height="720"></canvas>
+      <div id="toast" class="hidden"></div>
+    </section>
+
+    <!-- DECK (Karten) -->
+    <section id="tab-deck" class="screen">
+      <div class="panel">
+        <h2>DEIN DECK · <span id="deck-count">9</span> KARTEN</h2>
+        <div id="deck-grid" class="card-grid"></div>
+        <h2>TÜRME</h2>
+        <div id="tower-grid" class="card-grid"></div>
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section id="tab-shop" class="screen">
+      <div class="panel">
+        <h2>SHOP · BLACK MARKET</h2>
+        <p class="sub">Truhen öffnen → Karten sammeln → Level aufsteigen (+8 % HP/DMG pro Level).</p>
+        <div id="credits-row">🪙 <b id="credits-num">500</b> Credits</div>
+        <div id="shop-grid" class="card-grid"></div>
+        <div id="chest-reveal" class="hidden"></div>
+      </div>
+    </section>
+
+    <!-- CLAN -->
+    <section id="tab-clan" class="screen">
+      <div class="panel">
+        <h2>SYNDIKAT · GHETTO</h2>
+        <p class="sub" id="clan-sub">21 Gangs kämpfen um die Stadt.</p>
+        <div id="clan-list"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS -->
+    <section id="tab-events" class="screen">
+      <div class="panel">
+        <h2>TURNIERE · GHETTO CUP</h2>
+        <div class="event"><b>GHETTO CUP · täglich 20:00</b><span>3:00 Matches · Overtime-Sudden-Death · <i id="cup-countdown"></i></span></div>
+        <div class="event"><b>BOSS RUSH · Wochenende</b><span>Doppeltes Elixir ab Sekunde 1 · 145 BPM</span></div>
+        <div class="event"><b>MONGO TOM GAUNTLET</b><span>MongoTom → ApexMarauder → IronSpectre → ZeroTolerance</span></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom dock: elixir + hand + next -->
+  <footer id="dock">
+    <div id="elixir-wrap">
+      <div id="elixir-num">5/10</div>
+      <div id="elixir-col">
+        <div id="elixir-bar"><div id="elixir-fill"></div><div id="elixir-ticks"></div></div>
+        <div id="elixir-refill">füllt sich in: 2.9s</div>
+      </div>
+      <button id="btn-mute" title="Sound an/aus">🔊</button>
+    </div>
+    <div id="hand-row">
+      <div id="hand"></div>
+      <div id="next-card"><span>NEXT</span><div id="next-icon">?</div></div>
+    </div>
+  </footer>
+
+  <!-- Bottom nav -->
+  <nav id="tabs">
+    <button data-tab="tab_shop">🛒<span>Shop</span></button>
+    <button data-tab="tab_deck">🃏<span>Karten</span></button>
+    <button data-tab="tab_battle" class="sel">⚔️<span>Kampf</span></button>
+    <button data-tab="tab_clan">🛡️<span>Syndikat</span></button>
+    <button data-tab="tab_events">🏆<span>Turniere</span></button>
+  </nav>
+  <div id="ver">v2.0.0</div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

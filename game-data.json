@@ -1,0 +1,439 @@
+{
+  "game_meta": {
+    "title": "Gang Pepe: Empire Rise",
+    "version": "2.0.0",
+    "genre": "Gang Strategie Battle",
+    "theme": {
+      "setting": "Ghetto City Graffiti District",
+      "visuals": {
+        "primary_color": "#35c4ff",
+        "secondary_color": "#ff2f92",
+        "background_color": "#0d1420",
+        "style": "Circuit-board arena, blue Pepe gang vs pink pig gang, graffiti menu"
+      },
+      "audio": {
+        "genre": "Dark Synthwave / Cyberpunk Electro",
+        "dynamic_bpm": true,
+        "base_bpm": 120,
+        "overtime_bpm": 145,
+        "instruments": ["Distorted Bass", "Analog Synthesizers", "Industrial Percussion"]
+      }
+    }
+  },
+  "battle_settings": {
+    "match_duration_seconds": 180,
+    "overtime_duration_seconds": 60,
+    "elixir": {
+      "start_amount": 5,
+      "max_amount": 10,
+      "recharge_rate_per_sec": 0.35,
+      "overtime_multiplier": 2.0
+    },
+    "board": {
+      "lanes": 2,
+      "towers_per_player": {
+        "princess_towers": 2,
+        "king_tower": 1
+      }
+    }
+  },
+  "towers": [
+    {
+      "id": "turret_side",
+      "name": "Gang-Turm",
+      "type": "princess_tower",
+      "health": 3052,
+      "damage": 90,
+      "attack_speed_sec": 0.8,
+      "range": 7.5,
+      "target": "Boden & Luft"
+    },
+    {
+      "id": "turret_core",
+      "name": "Boss-Thron",
+      "type": "king_tower",
+      "health": 4824,
+      "damage": 120,
+      "attack_speed_sec": 1.0,
+      "range": 7.0,
+      "target": "Boden & Luft",
+      "active_on_damage": true
+    }
+  ],
+  "units": [
+    {
+      "id": "unit_brawler",
+      "name": "Prügel-Schwein",
+      "role": "Tank",
+      "rarity": "common",
+      "elixir_cost": 3,
+      "health": 800,
+      "damage": 50,
+      "attack_speed_sec": 1.2,
+      "range": "Nahkampf",
+      "speed": "Langsam",
+      "target": "Gebäude & Einheiten",
+      "ability": {
+        "name": "Fleischwall",
+        "type": "Passiv",
+        "description": "Dickes Fell: nimmt viel Schaden auf und blockiert Vorstöße."
+      }
+    },
+    {
+      "id": "unit_marksman",
+      "name": "Revolver-Pepe",
+      "role": "Fernkampf",
+      "rarity": "common",
+      "elixir_cost": 4,
+      "health": 550,
+      "damage": 35,
+      "attack_speed_sec": 0.9,
+      "range": "Mittel (6.0 Felder)",
+      "speed": "Mittel",
+      "target": "Boden & Luft",
+      "ability": {
+        "name": "Dauerfeuer",
+        "type": "Passiv",
+        "description": "Erhöht die Feuerrate um 10% nach 3 aufeinanderfolgenden Treffern auf dasselbe Ziel."
+      }
+    },
+    {
+      "id": "unit_tactician",
+      "name": "Bomber-Pingu",
+      "role": "Flächenangriff",
+      "rarity": "rare",
+      "elixir_cost": 4,
+      "health": 400,
+      "damage": 20,
+      "attack_speed_sec": 1.5,
+      "range": "Mittel (5.5 Felder)",
+      "speed": "Mittel",
+      "target": "Boden",
+      "ability": {
+        "name": "Flash-Bombe",
+        "type": "Aktiv (bei erstem Kontakt)",
+        "stun_duration_sec": 1.5,
+        "description": "Explosion blendet Feinde im Umkreis für 1,5 Sekunden (Betäubung)."
+      }
+    },
+    {
+      "id": "unit_medic",
+      "name": "Heiler-Pepe",
+      "role": "Heilung",
+      "rarity": "rare",
+      "elixir_cost": 3,
+      "health": 600,
+      "damage": 15,
+      "attack_speed_sec": 1.8,
+      "range": "Nahkampf",
+      "speed": "Mittel",
+      "target": "Verbündete (Aura)",
+      "ability": {
+        "name": "Pepe-Heilung",
+        "type": "Aura",
+        "heal_per_sec": 40,
+        "radius": 3.0,
+        "description": "Heilt Verbündete Einheiten kontinuierlich im Radius um 40 HP/s."
+      }
+    },
+    {
+      "id": "unit_ninja",
+      "name": "Schatten-Pepe",
+      "role": "Assassine",
+      "rarity": "rare",
+      "elixir_cost": 3,
+      "health": 450,
+      "damage": 55,
+      "attack_speed_sec": 1.0,
+      "range": "Nahkampf",
+      "speed": "Schnell",
+      "target": "Einheiten (bevorzugt Fernkampf)",
+      "ability": {
+        "name": "Shadow-Dash",
+        "type": "Aktiv (bei Spawn)",
+        "description": "+80 % Lauftempo für 1,5 s nach dem Spawn. Jagt bevorzugt feindliche Fernkämpfer."
+      }
+    },
+    {
+      "id": "unit_drone",
+      "name": "Spion-Drohne",
+      "role": "Luft-Fernkampf",
+      "rarity": "rare",
+      "elixir_cost": 3,
+      "health": 350,
+      "damage": 30,
+      "attack_speed_sec": 1.0,
+      "range": "Mittel (6.5 Felder)",
+      "speed": "Mittel",
+      "target": "Boden & Luft",
+      "flying": true,
+      "ability": {
+        "name": "Luftüberlegenheit",
+        "type": "Passiv",
+        "description": "Fliegt über den Fluss. Kann nur von Türmen, Schützen, Snipern, Hackern und Drohnen getroffen werden."
+      }
+    },
+    {
+      "id": "unit_hacker",
+      "name": "Ghetto-Hacker",
+      "role": "Kontrolle",
+      "rarity": "epic",
+      "elixir_cost": 4,
+      "health": 500,
+      "damage": 25,
+      "attack_speed_sec": 1.2,
+      "range": "Mittel (5.0 Felder)",
+      "speed": "Mittel",
+      "target": "Boden & Luft",
+      "ability": {
+        "name": "Virus-Upload",
+        "type": "Aktiv (bei Treffer)",
+        "slow_duration_sec": 2.0,
+        "description": "Verlangsamt getroffene Gegner für 2 s um 40 %."
+      }
+    },
+    {
+      "id": "unit_mech",
+      "name": "BOSS",
+      "role": "Boss",
+      "rarity": "epic",
+      "elixir_cost": 6,
+      "health": 1200,
+      "damage": 60,
+      "attack_speed_sec": 1.4,
+      "range": "Nahkampf",
+      "speed": "Langsam",
+      "target": "Gebäude & Einheiten",
+      "ability": {
+        "name": "Panzerschild",
+        "type": "Aktiv (einmalig)",
+        "description": "Blockt den ersten erlittenen Treffer komplett."
+      }
+    },
+    {
+      "id": "unit_sniper",
+      "name": "Sniper-Pepe",
+      "role": "Fernkampf",
+      "rarity": "epic",
+      "elixir_cost": 4,
+      "health": 400,
+      "damage": 90,
+      "attack_speed_sec": 2.0,
+      "range": "Weit (8.0 Felder)",
+      "speed": "Mittel",
+      "target": "Boden & Luft",
+      "ability": {
+        "name": "Headshot",
+        "type": "Passiv",
+        "description": "Jeder 4. Treffer verursacht doppelten Schaden."
+      }
+    }
+  ],
+  "chests": [
+    {
+      "id": "chest_street",
+      "name": "Street-Cache",
+      "icon": "📦",
+      "price": 100,
+      "draws": 3,
+      "weights": { "common": 70, "rare": 25, "epic": 5 },
+      "guarantee": null,
+      "description": "3 Karten · schnell gefüllt, Common-lastig."
+    },
+    {
+      "id": "chest_neon",
+      "name": "Neon-Vault",
+      "icon": "💠",
+      "price": 300,
+      "draws": 6,
+      "weights": { "common": 45, "rare": 40, "epic": 15 },
+      "guarantee": "rare",
+      "description": "6 Karten · garantiert min. 1 seltene Karte."
+    },
+    {
+      "id": "chest_core",
+      "name": "Core-Legende",
+      "icon": "👑",
+      "price": 800,
+      "draws": 10,
+      "weights": { "common": 25, "rare": 45, "epic": 30 },
+      "guarantee": "epic",
+      "description": "10 Karten · garantiert min. 1 epische Karte."
+    }
+  ],
+  "leveling": {
+    "copies_needed": [0, 2, 5, 10, 20],
+    "max_level": 5,
+    "bonus_per_level": 0.08,
+    "start_credits": 500,
+    "reward_win": 150,
+    "reward_draw": 75,
+    "reward_loss": 50
+  },
+  "bots": [
+    {
+      "username": "AlphaGamer",
+      "tier": "Schwach",
+      "deck": ["unit_brawler", "unit_marksman"],
+      "ai_profile": { "reaction_delay_ms": 2500, "elixir_efficiency": 0.55, "strategy": "Random Spawn" }
+    },
+    {
+      "username": "NightWalker",
+      "tier": "Schwach",
+      "deck": ["unit_brawler", "unit_tactician"],
+      "ai_profile": { "reaction_delay_ms": 2400, "elixir_efficiency": 0.6, "strategy": "Lane Rusher" }
+    },
+    {
+      "username": "ShadowStep",
+      "tier": "Schwach",
+      "deck": ["unit_marksman", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 2300, "elixir_efficiency": 0.58, "strategy": "Defensive Hesitant" }
+    },
+    {
+      "username": "PixelWolf",
+      "tier": "Schwach",
+      "deck": ["unit_brawler", "unit_ninja"],
+      "ai_profile": { "reaction_delay_ms": 2200, "elixir_efficiency": 0.62, "strategy": "Single Lane Push" }
+    },
+    {
+      "username": "RogueRunner",
+      "tier": "Schwach",
+      "deck": ["unit_tactician", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 2600, "elixir_efficiency": 0.5, "strategy": "Random Spawn" }
+    },
+    {
+      "username": "SilentViper",
+      "tier": "Schwach",
+      "deck": ["unit_brawler", "unit_tactician"],
+      "ai_profile": { "reaction_delay_ms": 2100, "elixir_efficiency": 0.63, "strategy": "Bridge Spam" }
+    },
+    {
+      "username": "NeonPhantom",
+      "tier": "Schwach",
+      "deck": ["unit_marksman", "unit_drone"],
+      "ai_profile": { "reaction_delay_ms": 2500, "elixir_efficiency": 0.54, "strategy": "Late Reaction" }
+    },
+    {
+      "username": "SwiftBlade",
+      "tier": "Schwach",
+      "deck": ["unit_brawler", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 2200, "elixir_efficiency": 0.6, "strategy": "Lane Rusher" }
+    },
+    {
+      "username": "CloudStrider",
+      "tier": "Schwach",
+      "deck": ["unit_marksman", "unit_hacker"],
+      "ai_profile": { "reaction_delay_ms": 2400, "elixir_efficiency": 0.57, "strategy": "Random Spawn" }
+    },
+    {
+      "username": "KiezPepe",
+      "tier": "Schwach",
+      "deck": ["unit_ninja", "unit_drone"],
+      "ai_profile": { "reaction_delay_ms": 2300, "elixir_efficiency": 0.58, "strategy": "Backline Raid" }
+    },
+    {
+      "username": "UrbanGhost",
+      "tier": "Schwach",
+      "deck": ["unit_ninja", "unit_marksman"],
+      "ai_profile": { "reaction_delay_ms": 2350, "elixir_efficiency": 0.59, "strategy": "Single Lane Push" }
+    },
+    {
+      "username": "NexusVanguard",
+      "tier": "Normal",
+      "deck": ["unit_brawler", "unit_marksman", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 1300, "elixir_efficiency": 0.78, "strategy": "Balanced Counter" }
+    },
+    {
+      "username": "CyberDrifter",
+      "tier": "Normal",
+      "deck": ["unit_brawler", "unit_tactician", "unit_ninja"],
+      "ai_profile": { "reaction_delay_ms": 1200, "elixir_efficiency": 0.8, "strategy": "Stun & Punish" }
+    },
+    {
+      "username": "DataReaver",
+      "tier": "Normal",
+      "deck": ["unit_marksman", "unit_drone", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 1400, "elixir_efficiency": 0.75, "strategy": "Ranged Kite" }
+    },
+    {
+      "username": "VoidWeaver",
+      "tier": "Normal",
+      "deck": ["unit_brawler", "unit_medic", "unit_mech"],
+      "ai_profile": { "reaction_delay_ms": 1250, "elixir_efficiency": 0.82, "strategy": "Tank & Sustain" }
+    },
+    {
+      "username": "SynthRunner",
+      "tier": "Normal",
+      "deck": ["unit_brawler", "unit_tactician", "unit_hacker"],
+      "ai_profile": { "reaction_delay_ms": 1350, "elixir_efficiency": 0.77, "strategy": "Split Lane Pressure" }
+    },
+    {
+      "username": "PlattenBoss",
+      "tier": "Normal",
+      "deck": ["unit_brawler", "unit_mech", "unit_sniper"],
+      "ai_profile": { "reaction_delay_ms": 1280, "elixir_efficiency": 0.79, "strategy": "Heavy Push" }
+    },
+    {
+      "username": "SteelNomad",
+      "tier": "Normal",
+      "deck": ["unit_brawler", "unit_sniper", "unit_tactician"],
+      "ai_profile": { "reaction_delay_ms": 1150, "elixir_efficiency": 0.83, "strategy": "Counter Attack" }
+    },
+    {
+      "username": "ApexMarauder",
+      "tier": "Profi",
+      "deck": ["unit_brawler", "unit_marksman", "unit_tactician", "unit_sniper"],
+      "ai_profile": { "reaction_delay_ms": 450, "elixir_efficiency": 0.98, "strategy": "Optimal Elixir Trade & Stun Sync" }
+    },
+    {
+      "username": "IronSpectre",
+      "tier": "Profi",
+      "deck": ["unit_brawler", "unit_mech", "unit_medic", "unit_marksman"],
+      "ai_profile": { "reaction_delay_ms": 400, "elixir_efficiency": 0.99, "strategy": "Defensive Counter-Push" }
+    },
+    {
+      "username": "ZeroTolerance",
+      "tier": "Profi",
+      "deck": ["unit_ninja", "unit_marksman", "unit_drone", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 420, "elixir_efficiency": 0.97, "strategy": "Aggressive Lane Pressure & Kite" }
+    },
+    {
+      "username": "MongoTom",
+      "tier": "Profi",
+      "deck": ["unit_mech", "unit_sniper", "unit_tactician", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 300, "elixir_efficiency": 1.0, "strategy": "AI Overlord & Robo Sync" }
+    },
+    {
+      "username": "UltimateGamer",
+      "tier": "Profi",
+      "deck": ["unit_brawler", "unit_sniper", "unit_hacker", "unit_medic"],
+      "ai_profile": { "reaction_delay_ms": 350, "elixir_efficiency": 1.0, "strategy": "Predictive Spawn & Tank-Medic Synergy" }
+    }
+  ],
+  "hud_layout": {
+    "style": "Clash Royale HUD Architecture",
+    "top_bar": {
+      "elements": ["Enemy Username", "Tower Health Indicators", "Match Timer (03:00)"]
+    },
+    "battle_area": {
+      "layout": "Top-Down Isometric",
+      "river_split": true,
+      "bridges_count": 2
+    },
+    "bottom_dock": {
+      "elixir_bar": {
+        "color_gradient": ["#35c4ff", "#ff2f92"],
+        "max_segments": 10
+      },
+      "hand_size": 4,
+      "next_card_preview": true
+    },
+    "navigation_tabs": [
+      { "id": "tab_shop", "label": "Shop", "icon": "cart" },
+      { "id": "tab_deck", "label": "Karten", "icon": "deck" },
+      { "id": "tab_battle", "label": "Kampf", "icon": "swords", "default": true },
+      { "id": "tab_clan", "label": "Syndikat", "icon": "shield" },
+      { "id": "tab_events", "label": "Turniere", "icon": "trophy" }
+    ]
+  }
+}
