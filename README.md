@@ -1,21 +1,21 @@
-# PlayGround
+# NEXUS CLAW Builder AI Weboberfläche
 
-Prepare the selected source snapshot in GitHub Actions.
+## Start
+Öffne `index.html` in einem aktuellen Browser. Für lokale Nutzung kann ein einfacher statischer Webserver verwendet werden.
 
-<!-- omgithub:readme:start -->
-## 🚀 Build, play, and remix with OMGithub
+## Enthalten
+- Responsive Dashboard mit sechs Bereichen
+- Projektkontext übernehmen
+- Simulierter Entwicklungszyklus mit Start/Pause/Stopp
+- 20 Gameplay-Testfälle in zwei Phasen
+- Live-Logs mit Filter und TXT-Export
+- Agentenmodi: Planung, Codierung, Analyse, Reparatur
+- Optionaler Verbindungstest zu Ollama `/api/tags`
+- Browserlokale Einstellungen
+- Sicherheitshinweise für Backend/Sandbox
 
-**Remixed using [OMGithub.com](https://omgithub.com).**
+## Wichtige Grenzen
+Diese Version ist ein Frontend-Prototyp. Projektdateien, Git, Builds, APK-Installation, echte Gameplay-Automation, Systemmetriken und autonome Reparaturen sind NICHT implementiert. Die entsprechenden Schaltflächen protokollieren den Aufruf oder zeigen einen Hinweis, statt unbemerkt externe Aktionen auszuführen.
 
-[![OMGithub](https://img.shields.io/badge/OMGithub-Open%20project-orange?style=for-the-badge)](https://omgithub.com/roman181/PlayGround)
-[![GitHub](https://img.shields.io/badge/GitHub-Source-181717?logo=github&style=for-the-badge)](https://github.com/roman181/PlayGround)
-
-- 🎮 [Open the project](https://omgithub.com/roman181/PlayGround).
-- ✨ [Remix this project](https://omgithub.com/?remix=roman181%2FPlayGround).
-- 💻 [Explore the source](https://github.com/roman181/PlayGround).
-- 🛠️ [Check build runs](https://github.com/roman181/PlayGround/actions).
-- 🐛 [Report an issue](https://github.com/roman181/PlayGround/issues).
-- 👤 [Explore the creator's projects](https://omgithub.com/roman181).
-- 🌍 [Create with OMGithub](https://omgithub.com).
-- 🧬 [Explore the remix source](https://github.com/roman181/s..t..p-game/tree/c25c57d8fae8024ca425abfe5abba79b8482c982).
-<!-- omgithub:readme:end -->
+## Nächster Architektur-Schritt
+Ein lokales Backend (z. B. Python/FastAPI) sollte über klar definierte Endpunkte mit dem Frontend verbunden werden. Dateioperationen und Codeausführung gehören in eine begrenzte Sandbox/Arbeitskopie; Git-Push, APK-Installation und andere externe oder irreversible Aktionen erfordern ausdrückliche Freigabe.
