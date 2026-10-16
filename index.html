@@ -106,11 +106,6 @@
             animation: float-pet 3.2s infinite ease-in-out;
         }
 
-        @keyframes road-grid {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 24px; }
-        }
-
         /* Toggle Switch */
         .cyber-switch {
             position: relative;
@@ -221,8 +216,25 @@
             outline: 2px solid #00e5ff;
             outline-offset: 2px;
         }
+        /* Loop-Status koppelt Animationen: Pause/Stopp/Fertig friert Core/Pet/Ping/Spin ein */
+        body[data-loop="paused"] .animate-core,
+        body[data-loop="stopped"] .animate-core,
+        body[data-loop="finished"] .animate-core,
+        body[data-loop="paused"] .animate-pet,
+        body[data-loop="stopped"] .animate-pet,
+        body[data-loop="finished"] .animate-pet,
+        body[data-loop="paused"] .animate-ping,
+        body[data-loop="stopped"] .animate-ping,
+        body[data-loop="finished"] .animate-ping,
+        body[data-loop="paused"] .fa-spin,
+        body[data-loop="stopped"] .fa-spin,
+        body[data-loop="finished"] .fa-spin { animation-play-state: paused; }
+        #barCpu { transition: width 0.5s ease; }
+        [id^="stepNode"] { transition: transform 0.3s ease; }
         @media (prefers-reduced-motion: reduce) {
-            .animate-core, .animate-pet { animation: none; }
+            .animate-core, .animate-pet, .animate-ping, .fa-spin { animation: none !important; }
+            #cycleProgressBar, #barCpu, #testDonutArc, #agentTaskBar { transition: none !important; }
+            html { scroll-behavior: auto; }
         }
 
         /* Vollbild-Kommandant (dritter Modus neben single/grid) */
@@ -244,8 +256,8 @@
             overflow: visible;
             max-height: none;
         }
-        body.kz-fullscreen nav.h-14.grid-cols-5 { display: none; }
-        body.kz-fullscreen #screen-dashboard .px-5.pt-2.5.pb-1:first-child { display: none; }
+        body.kz-fullscreen nav.h-14 { display: none; }
+        body.kz-fullscreen .phone-frame > div:first-child { display: none; }
         body.kz-fullscreen .kz-ring-target {
             outline: 2px solid #00e5ff;
             outline-offset: 3px;
@@ -259,7 +271,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-4 px-2 sm:px-6 select-none">
+<body data-loop="running" class="min-h-screen flex flex-col items-center py-4 px-2 sm:px-6 select-none">
 
     <!-- Top Control Bar (Prototype Mode Switcher & Global Controls) -->
     <header class="w-full max-w-7xl mb-4 flex flex-wrap items-center justify-between gap-3 bg-[#0a1222]/90 border border-[#1d3557] rounded-2xl px-4 py-2.5 backdrop-blur-md shadow-lg">
@@ -280,26 +292,26 @@
 
         <!-- View Mode Switcher: Single Interactive Phone vs. All 6 Screens Grid -->
         <div class="flex items-center gap-2 bg-[#060b14] p-1 rounded-xl border border-[#1a2e4c]">
-            <button id="btnModeSingle" onclick="setLayoutMode('single')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.5)] flex items-center gap-1.5">
+            <button id="btnModeSingle" onclick="setLayoutMode('single')" aria-pressed="true" aria-label="Einzel-Ansicht aktivieren" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.5)] flex items-center gap-1.5">
                 <i class="fa-solid fa-mobile-screen"></i> Einzel-Ansicht (Interaktiv)
             </button>
-            <button id="btnModeGrid" onclick="setLayoutMode('grid')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center gap-1.5">
+            <button id="btnModeGrid" onclick="setLayoutMode('grid')" aria-pressed="false" aria-label="Grid-Ansicht aktivieren" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center gap-1.5">
                 <i class="fa-solid fa-table-cells-large"></i> Alle 6 Screens (Grid)
             </button>
-            <button id="btnModeCommander" onclick="setLayoutMode('commander')" title="Vollbild-Kommandozentrale ohne Phone-Rahmen" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center gap-1.5">
+            <button id="btnModeCommander" onclick="setLayoutMode('commander')" aria-pressed="false" aria-label="Vollbild-Kommandant aktivieren" title="Vollbild-Kommandozentrale ohne Phone-Rahmen" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center gap-1.5">
                 <i class="fa-solid fa-desktop"></i> Kommandant
             </button>
         </div>
 
         <!-- Quick Screen Jumper -->
-        <div id="screenJumper" class="hidden xl:flex items-center gap-1.5 text-xs flex-wrap">
+        <div id="screenJumper" class="flex items-center gap-1.5 text-xs flex-wrap overflow-x-auto">
             <span class="text-slate-400 mr-1">Screen:</span>
             <button onclick="switchScreen('dashboard')" data-screen="dashboard" aria-current="page" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-cyan-300 border border-cyan-500/30">1. Dashboard</button>
-            <button onclick="switchScreen('projekte')" data-screen="projekte" aria-current="false" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">2. Projekte</button>
-            <button onclick="switchScreen('tests')" data-screen="tests" aria-current="false" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">3. Tests</button>
-            <button onclick="switchScreen('logs')" data-screen="logs" aria-current="false" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">4. Live-Logs</button>
-            <button onclick="switchScreen('agent')" data-screen="agent" aria-current="false" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">5. KI-Agent</button>
-            <button onclick="switchScreen('settings')" data-screen="settings" aria-current="false" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">6. Einstellungen</button>
+            <button onclick="switchScreen('projekte')" data-screen="projekte" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">2. Projekte</button>
+            <button onclick="switchScreen('tests')" data-screen="tests" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">3. Tests</button>
+            <button onclick="switchScreen('logs')" data-screen="logs" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">4. Live-Logs</button>
+            <button onclick="switchScreen('agent')" data-screen="agent" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">5. KI-Agent</button>
+            <button onclick="switchScreen('settings')" data-screen="settings" class="screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] text-slate-300 border border-slate-700">6. Einstellungen</button>
         </div>
     </header>
 
@@ -535,7 +547,7 @@
 
                         <!-- Step 3 (Active) -->
                         <div onclick="setLoopStep(3)" class="cursor-pointer flex flex-col items-center group">
-                            <div id="stepNode3" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-extrabold border-2 border-amber-300 bg-amber-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.8)]">3</div>
+                            <div id="stepNode3" class="w-8 h-8 scale-110 rounded-full flex items-center justify-center text-xs font-extrabold border-2 border-amber-300 bg-amber-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.8)] transition-transform duration-300 transform">3</div>
                             <span class="text-[9.5px] text-amber-300 font-semibold mt-0.5 leading-tight">Tests<br>1-10</span>
                         </div>
                         <div class="step-line"></div>
@@ -617,7 +629,7 @@
             </div>
 
             <!-- Bottom Navigation Bar -->
-            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-5 items-center text-[10px] text-slate-400">
+            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
                 <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold">
                     <i class="fa-solid fa-house text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Dashboard</span>
@@ -633,6 +645,10 @@
                 <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-file-lines text-base"></i>
                     <span>Logs</span>
+                </button>
+                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
+                    <i class="fa-solid fa-robot text-base"></i>
+                    <span>Agent</span>
                 </button>
                 <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-gear text-base"></i>
@@ -802,7 +818,7 @@
             </div>
 
             <!-- Bottom Navigation Bar -->
-            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-5 items-center text-[10px] text-slate-400">
+            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
                 <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-house text-base"></i>
                     <span>Dashboard</span>
@@ -818,6 +834,10 @@
                 <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-file-lines text-base"></i>
                     <span>Logs</span>
+                </button>
+                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
+                    <i class="fa-solid fa-robot text-base"></i>
+                    <span>Agent</span>
                 </button>
                 <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-gear text-base"></i>
@@ -917,7 +937,7 @@
             </div>
 
             <!-- Bottom Navigation Bar -->
-            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-5 items-center text-[10px] text-slate-400">
+            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
                 <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-house text-base"></i>
                     <span>Dashboard</span>
@@ -933,6 +953,10 @@
                 <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-file-lines text-base"></i>
                     <span>Logs</span>
+                </button>
+                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
+                    <i class="fa-solid fa-robot text-base"></i>
+                    <span>Agent</span>
                 </button>
                 <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-gear text-base"></i>
@@ -993,7 +1017,7 @@
             </div>
 
             <!-- Bottom Navigation Bar -->
-            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-5 items-center text-[10px] text-slate-400">
+            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
                 <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-house text-base"></i>
                     <span>Dashboard</span>
@@ -1126,7 +1150,7 @@
             </div>
 
             <!-- Bottom Navigation Bar -->
-            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-5 items-center text-[10px] text-slate-400">
+            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
                 <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold">
                     <i class="fa-solid fa-house text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Dashboard</span>
@@ -1142,6 +1166,10 @@
                 <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-file-lines text-base"></i>
                     <span>Logs</span>
+                </button>
+                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
+                    <i class="fa-solid fa-robot text-base"></i>
+                    <span>Agent</span>
                 </button>
                 <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-gear text-base"></i>
@@ -1293,7 +1321,7 @@
             </div>
 
             <!-- Bottom Navigation Bar -->
-            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-5 items-center text-[10px] text-slate-400">
+            <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
                 <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-house text-base"></i>
                     <span>Dashboard</span>
@@ -1309,6 +1337,10 @@
                 <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
                     <i class="fa-solid fa-file-lines text-base"></i>
                     <span>Logs</span>
+                </button>
+                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
+                    <i class="fa-solid fa-robot text-base"></i>
+                    <span>Agent</span>
                 </button>
                 <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 text-blue-400 font-semibold">
                     <i class="fa-solid fa-gear text-base drop-shadow-[0_0_8px_#3b82f6]"></i>
@@ -1386,6 +1418,10 @@
             if (wrap) wrap.setAttribute('aria-valuenow', String(Math.min(100, Math.max(0, pct))));
         }
 
+        function setLoopState(state) {
+            document.body.dataset.loop = state;
+        }
+
         function advanceCycle() {
             if (cycleCurrent < cycleTotal) {
                 cycleCurrent++;
@@ -1394,6 +1430,7 @@
                 updateCycleUI();
             } else {
                 loopRunning = false;
+                setLoopState('finished');
                 document.getElementById('operatorSpeech').textContent = 'FERTIG: Alle ' + cycleTotal + ' Zyklen abgeschlossen.';
                 const badge = document.getElementById('agentStatusBadgeText');
                 if (badge) { badge.textContent = 'FERTIG'; badge.className = 'font-cyber text-[10px] font-bold text-cyan-300'; }
@@ -1442,15 +1479,16 @@
             const btnSingle = document.getElementById('btnModeSingle');
             const btnGrid = document.getElementById('btnModeGrid');
             const btnCommander = document.getElementById('btnModeCommander');
-            if (btnSingle) btnSingle.className = activeMode === 'single' ? MODE_BTN_ACTIVE : MODE_BTN_IDLE;
-            if (btnGrid) btnGrid.className = activeMode === 'grid' ? MODE_BTN_ACTIVE : MODE_BTN_IDLE;
-            if (btnCommander) btnCommander.className = activeMode === 'commander' ? MODE_BTN_ACTIVE : MODE_BTN_IDLE;
+            if (btnSingle) { btnSingle.className = activeMode === 'single' ? MODE_BTN_ACTIVE : MODE_BTN_IDLE; btnSingle.setAttribute('aria-pressed', activeMode === 'single' ? 'true' : 'false'); }
+            if (btnGrid) { btnGrid.className = activeMode === 'grid' ? MODE_BTN_ACTIVE : MODE_BTN_IDLE; btnGrid.setAttribute('aria-pressed', activeMode === 'grid' ? 'true' : 'false'); }
+            if (btnCommander) { btnCommander.className = activeMode === 'commander' ? MODE_BTN_ACTIVE : MODE_BTN_IDLE; btnCommander.setAttribute('aria-pressed', activeMode === 'commander' ? 'true' : 'false'); }
         }
 
         function paintScreenPills(activeId) {
             document.querySelectorAll('.screen-pill').forEach(btn => {
                 const isActive = btn.dataset.screen === activeId;
-                btn.setAttribute('aria-current', isActive ? 'page' : 'false');
+                if (isActive) btn.setAttribute('aria-current', 'page');
+                else btn.removeAttribute('aria-current');
                 btn.className = 'screen-pill px-2.5 py-1 rounded-lg bg-[#111e34] hover:bg-[#192b48] ' +
                     (isActive ? 'text-cyan-300 border border-cyan-500/30' : 'text-slate-300 border border-slate-700');
             });
@@ -1463,10 +1501,34 @@
             ringTimeout = setTimeout(() => target.classList.remove('kz-ring-target'), 1600);
         }
 
-        function setLayoutMode(mode) {
-            layoutMode = (mode === 'grid' || mode === 'commander') ? mode : 'single';
+        const VALID_MODES = ['single', 'grid', 'commander'];
+        let suppressHashWrite = false;
+
+        function writeHash() {
+            if (suppressHashWrite) return;
+            try { history.replaceState(null, '', '#' + activeScreen + '/' + layoutMode); } catch (e) {}
+        }
+
+        function parseHash() {
+            const raw = (location.hash || '').replace('#', '');
+            if (!raw) return false;
+            const parts = raw.split('/');
+            let changed = false;
+            if (VALID_SCREENS.includes(parts[0]) && parts[0] !== activeScreen) { activeScreen = parts[0]; changed = true; }
+            if (VALID_MODES.includes(parts[1])) {
+                const m = parts[1];
+                if (m !== layoutMode) { setLayoutMode(m, true); changed = true; }
+            }
+            return changed;
+        }
+
+        function reducedMotion() {
+            return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        }
+
+        function setLayoutMode(mode, fromHash) {
+            layoutMode = VALID_MODES.includes(mode) ? mode : 'single';
             const screens = document.querySelectorAll('.phone-frame');
-            const jumper = document.getElementById('screenJumper');
             document.body.classList.toggle('kz-fullscreen', layoutMode === 'commander');
 
             if (layoutMode === 'grid' || layoutMode === 'commander') {
@@ -1477,21 +1539,15 @@
                     else s.classList.add('hidden');
                 });
             }
-            if (jumper && layoutMode === 'commander') {
-                jumper.classList.remove('hidden', 'xl:flex');
-                jumper.classList.add('flex');
-            } else if (jumper) {
-                jumper.classList.add('hidden', 'xl:flex');
-                jumper.classList.remove('flex');
-            }
             paintModeButtons(layoutMode);
             paintScreenPills(activeScreen);
+            if (!fromHash) writeHash();
         }
 
         function switchScreen(screenId) {
             if (!VALID_SCREENS.includes(screenId)) screenId = 'dashboard';
             activeScreen = screenId;
-            try { history.replaceState(null, '', '#' + screenId); } catch (e) {}
+            writeHash();
             paintScreenPills(screenId);
             if (layoutMode === 'single') {
                 document.querySelectorAll('.phone-frame').forEach(s => {
@@ -1501,8 +1557,8 @@
             } else {
                 const target = document.getElementById('screen-' + screenId);
                 if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                    flashRing(target);
+                    target.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
+                    if (!reducedMotion()) flashRing(target);
                 }
             }
         }
@@ -1522,11 +1578,11 @@
             for (let i = 1; i <= 6; i++) {
                 const node = document.getElementById('stepNode' + i);
                 if (i < step) {
-                    node.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-emerald-400 bg-emerald-950/80 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.4)]';
+                    node.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-emerald-400 bg-emerald-950/80 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.4)] transition-transform duration-300';
                 } else if (i === step) {
-                    node.className = 'w-9 h-9 rounded-full flex items-center justify-center text-sm font-extrabold border-2 border-amber-300 bg-amber-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.8)]';
+                    node.className = 'w-8 h-8 scale-110 rounded-full flex items-center justify-center text-xs font-extrabold border-2 border-amber-300 bg-amber-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.8)] transition-transform duration-300 transform';
                 } else {
-                    node.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-purple-400/70 bg-purple-950/60 text-purple-200';
+                    node.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-purple-400/70 bg-purple-950/60 text-purple-200 transition-transform duration-300';
                 }
             }
             const info = stepDescriptions[step];
@@ -1549,18 +1605,22 @@
                 if (input) setCycleTotal(input.value);
                 if (badge && badge.textContent === 'FERTIG' && cycleCurrent >= cycleTotal) cycleCurrent = 1;
                 loopRunning = true;
+                setLoopState('running');
                 badge.textContent = 'AKTIV';
                 badge.className = 'font-cyber text-[10px] font-bold text-emerald-400';
                 triggerActionToast('Autonomer 24/7 Entwicklungs-Loop läuft (Zyklus ' + cycleCurrent + '/' + cycleTotal + ').', 'PLAN');
                 updateCycleUI();
             } else if (action === 'pause') {
                 loopRunning = false;
+                clearTimeout(window.__advanceTimer);
+                setLoopState('paused');
                 badge.textContent = 'PAUSIERT';
                 badge.className = 'font-cyber text-[10px] font-bold text-amber-400';
                 triggerActionToast('Entwicklungs-Loop pausiert.', 'WARN');
             } else if (action === 'stop') {
                 loopRunning = false;
                 clearTimeout(window.__advanceTimer);
+                setLoopState('stopped');
                 cycleCurrent = 1;
                 badge.textContent = 'GESTOPPT';
                 badge.className = 'font-cyber text-[10px] font-bold text-rose-400';
@@ -1933,19 +1993,32 @@
             if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName || '')) return;
             const order = VALID_SCREENS;
             const idx = order.indexOf(activeScreen);
+            const modes = ['single', 'grid', 'commander'];
             if (e.key >= '1' && e.key <= '6') switchScreen(order[parseInt(e.key, 10) - 1]);
             else if (e.key === 'ArrowRight') switchScreen(order[(idx + 1) % order.length]);
             else if (e.key === 'ArrowLeft') switchScreen(order[(idx - 1 + order.length) % order.length]);
-            else if (e.key === 'g' || e.key === 'G') setLayoutMode(layoutMode === 'grid' ? 'single' : 'grid');
+            else if (e.key === 'g' || e.key === 'G') setLayoutMode(modes[(modes.indexOf(layoutMode) + 1) % modes.length]);
+            else if (e.key === 'c' || e.key === 'C') setLayoutMode('commander');
+            else if (e.key === 'Escape') setLayoutMode('single');
+        });
+
+        window.addEventListener('hashchange', () => {
+            suppressHashWrite = true;
+            const hadMode = (location.hash || '').includes('/');
+            parseHash();
+            setLayoutMode(layoutMode, true);
+            if (hadMode || VALID_SCREENS.includes((location.hash || '').replace('#', '').split('/')[0])) switchScreen(activeScreen);
+            suppressHashWrite = false;
+            writeHash();
         });
 
         // Initialize Views on Load
         window.onload = function () {
             renderTestsList();
             renderLogs();
-            const hash = (location.hash || '').replace('#', '');
-            if (VALID_SCREENS.includes(hash)) activeScreen = hash;
-            setLayoutMode(layoutMode);
+            setLoopState('running');
+            parseHash();
+            setLayoutMode(layoutMode, true);
             switchScreen(activeScreen);
             updateCycleUI();
         };
