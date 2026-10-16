@@ -194,8 +194,8 @@ def get_state():
 @app.post("/api/plan_start")
 def plan_start(data: dict, bg: BackgroundTasks):
     anzahl = int(data.get("anzahl_zyklen", 3))
-    if anzahl <1 or anzahl>20:
-        return {"error":"1-20 Zyklen erlaubt"}
+    if anzahl <1 or anzahl>48:
+        return {"error":"1-48 Zyklen erlaubt"}
     
     state["anzahl_zyklen"] = anzahl
     state["aktueller_plan_zyklus"] = 0
@@ -263,7 +263,7 @@ cat > ~/nexus-claw/web/index.html << 'HTMLEOF'
 <div class="p-4 space-y-4">
 <div class="bg-black/60 rounded-xl p-3 border border-cyan-900/50">
 <label class="text-[11px] text-cyan-300">Anzahl Zyklen eingeben:</label>
-<div class="flex gap-2 mt-2"><input id="anzahl" type="number" min="1" max="20" value="5" class="flex-1 bg-black border border-cyan-500 rounded-lg px-3 py-2 text-center text-xl font-bold text-cyan-400">
+<div class="flex gap-2 mt-2"><input id="anzahl" type="number" min="1" max="48" value="15" class="flex-1 bg-black border border-cyan-500 rounded-lg px-3 py-2 text-center text-xl font-bold text-cyan-400">
 <button onclick="startPlan()" class="bg-[#00ff88] text-black font-black px-4 py-2 rounded-lg">▶ PLAN</button></div>
 <p class="text-[9px] text-gray-400 mt-2">Beispiel: 5 Zyklen = 1 Core, 2 Gegner KI, 3 Level, 4 Performance, 5 Polishing</p>
 </div>
@@ -316,7 +316,7 @@ function render(){
  if(state.modus=='PLAN_FERTIG'){document.getElementById('autonomHinweis').classList.remove('hidden'); let c=3; let iv=setInterval(()=>{c--; document.getElementById('countdown').textContent=c; if(c<=0){clearInterval(iv); document.getElementById('autonomHinweis').classList.add('hidden');}},1000);}
  else{document.getElementById('autonomHinweis').classList.add('hidden');}
 }
-async function startPlan(){let n=parseInt(document.getElementById('anzahl').value)||5; if(n<1||n>20){alert('1-20 Zyklen'); return;} await fetch('/api/plan_start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({anzahl_zyklen:n})});}
+async function startPlan(){let n=parseInt(document.getElementById('anzahl').value)||15; if(n<1||n>48){alert('1-48 Zyklen'); return;} await fetch('/api/plan_start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({anzahl_zyklen:n})});}
 async function stopAll(){await fetch('/api/stop',{method:'POST'});}
 async function manuell(){let i=document.getElementById('manuellPrompt'); if(!i.value)return; let r=await fetch('http://localhost:11434/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'qwen2.5-coder:1.5b',prompt:i.value,stream:false})}); let j=await r.json(); state.logs.push({time:new Date().toLocaleTimeString(),type:'CODE',msg:j.response.slice(0,150)}); i.value=''; render();}
 setInterval(fetchState,1500); fetchState();
