@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts: Orbitron & Inter & JetBrains Mono -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 28,9 28,23 16,30 4,23 4,9' fill='%23050811' stroke='%2300e5ff' stroke-width='2'/%3E%3Cpath d='M11,11 L16,16 L11,21 M16,16 L21,11 M16,16 L21,21' stroke='%2300e5ff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%2300e676'/%3E%3C/svg%3E">
     <style>
         :root {
             --bg-void: #050811;
@@ -121,11 +122,50 @@
         body[data-loop="finished"] .fa-spin {
             animation-play-state: paused;
         }
-        #barCpu {
-            transition: width 0.5s ease;
+        #barCpu, #barRam, #barStorage, #barBattery {
+            transition: width 0.5s ease, background-color 0.5s ease;
+        }
+        .step-line {
+            transition: background-color 0.5s ease;
         }
         #stepNode1, #stepNode2, #stepNode3, #stepNode4, #stepNode5, #stepNode6 {
             transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Einheitliches Logo + Active-System */
+        .kz-logo {
+            font-weight: 800;
+            font-size: 19px;
+            letter-spacing: 0.06em;
+            color: #22d3ee;
+            text-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+        }
+        .kz-logo-sm {
+            font-size: 14px;
+        }
+        .nav-active {
+            color: #22d3ee !important;
+        }
+        .nav-active svg, .nav-active i {
+            filter: drop-shadow(0 0 8px #00e5ff);
+        }
+        /* Banner Sheen + Sonnen-Puls (CSS-only) */
+        @keyframes kz-sheen {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(220%); }
+        }
+        .kz-sheen {
+            animation: kz-sheen 6s linear infinite;
+        }
+        @keyframes kz-sun-pulse {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 1; }
+        }
+        .kz-sun {
+            animation: kz-sun-pulse 4s ease-in-out infinite;
+        }
+        .kz-underglow {
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
         }
 
         /* Toggle Switch */
@@ -239,8 +279,8 @@
             outline-offset: 2px;
         }
         @media (prefers-reduced-motion: reduce) {
-            .animate-core, .animate-pet, .animate-ping, .fa-spin { animation: none; }
-            #cycleProgressBar, #barCpu, #testDonutArc, #agentTaskBar { transition: none; }
+            .animate-core, .animate-pet, .animate-ping, .fa-spin, .kz-sheen, .kz-sun { animation: none; }
+            #cycleProgressBar, #barCpu, #barRam, #barStorage, #barBattery, #testDonutArc, #testDonutWarn, #testDonutOpen, #agentTaskBar { transition: none; }
             html { scroll-behavior: auto; }
         }
 
@@ -279,16 +319,23 @@
     </style>
 </head>
 <body data-loop="running" class="min-h-screen flex flex-col items-center py-4 px-2 sm:px-6 select-none">
+    <svg style="display:none" aria-hidden="true">
+        <symbol id="kz-logo" viewBox="0 0 32 32">
+            <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M11,11 L16,16 L11,21 M16,16 L21,11 M16,16 L21,21" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="16" cy="16" r="2" fill="currentColor"/>
+        </symbol>
+    </svg>
 
     <!-- Top Control Bar (Prototype Mode Switcher & Global Controls) -->
     <header class="w-full max-w-7xl mb-4 flex flex-wrap items-center justify-between gap-3 bg-[#0a1222]/90 border border-[#1d3557] rounded-2xl px-4 py-2.5 backdrop-blur-md shadow-lg">
         <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-400/50 flex items-center justify-center text-cyan-400 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
-                <i class="fa-solid fa-microchip text-lg"></i>
+                <svg class="w-6 h-6" aria-hidden="true"><use href="#kz-logo"/></svg>
             </div>
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h1 class="font-cyber text-sm sm:text-base font-bold text-cyan-400 tracking-wider">NEXUS CLAW</h1>
+                    <h1 class="font-cyber kz-logo kz-logo-sm tracking-wider">NEXUS CLAW</h1>
                     <span class="text-[10px] font-mono-code uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">v2.4 Prototype</span>
                     <span class="text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/40">Kommandozentrale</span>
                     <span class="text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-200 border border-slate-600">qwen2.5-coder:1.5b</span>
@@ -346,7 +393,7 @@
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="text-center">
-                    <div class="font-cyber text-[19px] font-extrabold text-cyan-400 tracking-widest drop-shadow-[0_0_8px_rgba(0,229,255,0.5)] leading-tight">NEXUS CLAW</div>
+                    <div class="font-cyber kz-logo leading-tight">NEXUS CLAW</div>
                     <div class="text-[9.5px] font-semibold tracking-widest text-slate-300 uppercase">Kommandozentrale • Entwicklungs-Loop 24/7</div>
                 </div>
                 <button onclick="switchScreen('settings')" class="text-cyan-400 hover:text-cyan-300 p-1" title="Einstellungen">
@@ -391,7 +438,7 @@
                     <!-- Illustrated Cyberpunk AI Avatar & Nexus Pet (SVG + High-Detail Stylized Render) -->
                     <div class="absolute inset-0 flex items-end justify-start pointer-events-none overflow-hidden">
                         <!-- Blonde Cyberpunk AI Operator Avatar -->
-                        <svg viewBox="0 0 260 250" class="w-[235px] h-[245px] -ml-2 drop-shadow-[0_0_16px_rgba(0,210,255,0.3)]">
+                        <svg viewBox="0 0 260 250" class="w-[235px] h-[245px] max-w-[210px] max-h-[220px] -ml-2 drop-shadow-[0_0_16px_rgba(0,210,255,0.3)]">
                             <defs>
                                 <linearGradient id="armorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#1e293b"/>
@@ -480,7 +527,7 @@
                         </button>
 
                         <!-- NEXUS PET Mini Robot Companion -->
-                        <div onclick="petInteract()" class="cursor-pointer flex flex-col items-center animate-pet group" title="Nexus Pet anklicken">
+                        <div onclick="petInteract()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();petInteract();}" role="button" tabindex="0" aria-label="Nexus Pet interagieren" class="cursor-pointer flex flex-col items-center animate-pet group" title="Nexus Pet anklicken">
                             <svg viewBox="0 0 80 70" class="w-16 h-14 drop-shadow-[0_0_10px_rgba(0,229,255,0.4)]">
                                 <!-- Robot Ears -->
                                 <polygon points="15,24 8,8 26,16" fill="#1e293b" stroke="#00e5ff" stroke-width="2"/>
@@ -507,7 +554,7 @@
                     </div>
 
                     <!-- Speech Bubble Bottom Left -->
-                    <div class="relative z-10 mt-auto max-w-[200px] bg-[#081528]/95 border border-cyan-500/50 rounded-xl px-3 py-2 text-[11px] text-slate-100 shadow-[0_0_15px_rgba(0,0,0,0.7)]">
+                    <div class="relative z-10 mt-auto max-w-[200px] bg-[#081528]/95 border border-cyan-500/50 rounded-xl px-3 py-2 text-[11px] leading-snug break-words text-slate-100 shadow-[0_0_15px_rgba(0,0,0,0.7)]">
                         <span id="operatorSpeech">Ich arbeite autonom am nächsten Zyklus ...</span>
                     </div>
                 </div>
@@ -539,44 +586,44 @@
                     <!-- 6-Step Autonomous Loop Pipeline (Clickable!) -->
                     <div class="pt-1 flex items-center justify-between text-center">
                         <!-- Step 1 -->
-                        <div onclick="setLoopStep(1)" class="cursor-pointer flex flex-col items-center group">
+                        <div onclick="setLoopStep(1)" title="Planen" class="cursor-pointer flex flex-col items-center group">
                             <div id="stepNode1" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-emerald-400 bg-emerald-950/80 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.4)]">1</div>
-                            <span class="text-[9.5px] text-slate-300 mt-1">Planen</span>
+                            <span class="text-[9.5px] text-slate-300 mt-1"><i class="fa-solid fa-clipboard-check text-[8px] mr-0.5" aria-hidden="true"></i>Planen</span>
                         </div>
                         <div class="step-line done"></div>
 
                         <!-- Step 2 -->
-                        <div onclick="setLoopStep(2)" class="cursor-pointer flex flex-col items-center group">
+                        <div onclick="setLoopStep(2)" title="Bauen" class="cursor-pointer flex flex-col items-center group">
                             <div id="stepNode2" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-emerald-400 bg-emerald-950/80 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.4)]">2</div>
-                            <span class="text-[9.5px] text-slate-300 mt-1">Bauen</span>
+                            <span class="text-[9.5px] text-slate-300 mt-1"><i class="fa-solid fa-hammer text-[8px] mr-0.5" aria-hidden="true"></i>Bauen</span>
                         </div>
                         <div class="step-line done"></div>
 
                         <!-- Step 3 (Active) -->
-                        <div onclick="setLoopStep(3)" class="cursor-pointer flex flex-col items-center group">
+                        <div onclick="setLoopStep(3)" title="Tests 1-10" class="cursor-pointer flex flex-col items-center group">
                             <div id="stepNode3" class="w-8 h-8 scale-110 rounded-full flex items-center justify-center text-sm font-extrabold border-2 border-amber-300 bg-amber-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.8)] transform">3</div>
-                            <span class="text-[9.5px] text-amber-300 font-semibold mt-0.5 leading-tight">Tests<br>1-10</span>
+                            <span class="text-[9.5px] text-amber-300 font-semibold mt-0.5 leading-tight"><i class="fa-solid fa-flask text-[8px] mr-0.5" aria-hidden="true"></i>Tests<br>1-10</span>
                         </div>
                         <div class="step-line"></div>
 
                         <!-- Step 4 -->
-                        <div onclick="setLoopStep(4)" class="cursor-pointer flex flex-col items-center group">
+                        <div onclick="setLoopStep(4)" title="Fixen" class="cursor-pointer flex flex-col items-center group">
                             <div id="stepNode4" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-purple-400/70 bg-purple-950/60 text-purple-200">4</div>
-                            <span class="text-[9.5px] text-slate-300 mt-1">Fixen</span>
+                            <span class="text-[9.5px] text-slate-300 mt-1"><i class="fa-solid fa-wrench text-[8px] mr-0.5" aria-hidden="true"></i>Fixen</span>
                         </div>
                         <div class="step-line"></div>
 
                         <!-- Step 5 -->
-                        <div onclick="setLoopStep(5)" class="cursor-pointer flex flex-col items-center group">
+                        <div onclick="setLoopStep(5)" title="Tests 11-20" class="cursor-pointer flex flex-col items-center group">
                             <div id="stepNode5" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-purple-400/70 bg-purple-950/60 text-purple-200">5</div>
-                            <span class="text-[9.5px] text-slate-300 mt-0.5 leading-tight">Tests<br>11-20</span>
+                            <span class="text-[9.5px] text-slate-300 mt-0.5 leading-tight"><i class="fa-solid fa-gauge-high text-[8px] mr-0.5" aria-hidden="true"></i>Tests<br>11-20</span>
                         </div>
                         <div class="step-line"></div>
 
                         <!-- Step 6 -->
-                        <div onclick="setLoopStep(6)" class="cursor-pointer flex flex-col items-center group">
+                        <div onclick="setLoopStep(6)" title="Loop abschließen" class="cursor-pointer flex flex-col items-center group">
                             <div id="stepNode6" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-purple-400/70 bg-purple-950/60 text-purple-200">6</div>
-                            <span class="text-[9.5px] text-slate-300 mt-1">Loop</span>
+                            <span class="text-[9.5px] text-slate-300 mt-1"><i class="fa-solid fa-rotate-right text-[8px] mr-0.5" aria-hidden="true"></i>Loop</span>
                         </div>
                     </div>
                 </div>
@@ -598,38 +645,38 @@
                 <div class="grid grid-cols-4 gap-1.5 pt-0.5" aria-label="Hardware-Telemetrie">
                     <div class="cyber-card p-2 text-center" title="CPU-Auslastung: 68% von max. 80% Limit">
                         <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-microchip text-cyan-400" aria-hidden="true"></i> CPU
+                            <i class="fa-solid fa-microchip text-cyan-400 text-sm w-5 text-center" aria-hidden="true"></i> CPU
                         </div>
                         <div id="statCpu" class="text-xs font-bold text-emerald-400 mt-0.5" aria-live="polite">68%</div>
-                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                            <div id="barCpu" class="h-full bg-emerald-400" style="width: 68%"></div>
+                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden" role="progressbar" aria-label="CPU-Auslastung" aria-valuemin="0" aria-valuemax="100" aria-valuenow="68" id="cpuProgressWrap">
+                            <div id="barCpu" class="h-full bg-emerald-400 transition-all duration-500" style="width: 68%"></div>
                         </div>
                     </div>
-                    <div class="cyber-card p-2 text-center">
+                    <div class="cyber-card p-2 text-center" title="RAM: 3.2 von 8 GB">
                         <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-memory text-cyan-400"></i> RAM
+                            <i class="fa-solid fa-memory text-cyan-400 text-sm w-5 text-center"></i> RAM
                         </div>
-                        <div id="statRam" class="text-[11px] font-bold text-emerald-400 mt-0.5">3.2 / 8 GB</div>
-                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                            <div class="h-full bg-emerald-400" style="width: 42%"></div>
+                        <div id="statRam" class="text-xs font-bold text-emerald-400 mt-0.5">3.2 / 8 GB</div>
+                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden" role="progressbar" aria-label="RAM-Auslastung" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42" id="ramProgressWrap">
+                            <div id="barRam" class="h-full bg-emerald-400 transition-all duration-500" style="width: 42%"></div>
                         </div>
                     </div>
-                    <div class="cyber-card p-2 text-center">
+                    <div class="cyber-card p-2 text-center" title="Speicher: 24 von 64 GB">
                         <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-folder-closed text-cyan-400"></i> Speicher
+                            <i class="fa-solid fa-folder-open text-cyan-400 text-sm w-5 text-center"></i> Speicher
                         </div>
-                        <div class="text-[10px] font-bold text-emerald-400 mt-0.5">24 / 64 GB</div>
-                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                            <div class="h-full bg-emerald-400" style="width: 38%"></div>
+                        <div id="statStorage" class="text-xs font-bold text-emerald-400 mt-0.5">24 / 64 GB</div>
+                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden" role="progressbar" aria-label="Speicher-Auslastung" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38" id="storageProgressWrap">
+                            <div id="barStorage" class="h-full bg-emerald-400 transition-all duration-500" style="width: 38%"></div>
                         </div>
                     </div>
-                    <div class="cyber-card p-2 text-center">
+                    <div class="cyber-card p-2 text-center" title="Akku: 100%">
                         <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-battery-full text-emerald-400"></i> Akku
+                            <i class="fa-solid fa-battery-full text-emerald-400 text-sm w-5 text-center"></i> Akku
                         </div>
-                        <div class="text-xs font-bold text-emerald-400 mt-0.5">100%</div>
-                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                            <div class="h-full bg-emerald-400" style="width: 100%"></div>
+                        <div id="statBattery" class="text-xs font-bold text-emerald-400 mt-0.5">100%</div>
+                        <div class="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden" role="progressbar" aria-label="Akku-Ladestand" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="batteryProgressWrap">
+                            <div id="barBattery" class="h-full bg-emerald-400 transition-all duration-500" style="width: 100%"></div>
                         </div>
                     </div>
                 </div>
@@ -637,7 +684,7 @@
 
             <!-- Bottom Navigation Bar -->
             <nav class="h-14 bg-[#070d19] border-t border-[#182b49] grid grid-cols-6 items-center text-[10px] text-slate-400">
-                <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold">
+                <button onclick="switchScreen('dashboard')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold nav-active">
                     <i class="fa-solid fa-house text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Dashboard</span>
                 </button>
@@ -732,8 +779,9 @@
                     </div>
 
                     <!-- Cyberpunk Outrun Racing Game Preview Banner -->
-                    <div class="relative rounded-xl overflow-hidden border border-cyan-500/40 h-36 bg-[#090418] shadow-[0_0_15px_rgba(170,0,255,0.25)] group">
-                        <svg viewBox="0 0 320 150" class="w-full h-full object-cover">
+                    <div class="relative rounded-xl overflow-hidden border border-cyan-500/40 h-36 bg-[#090418] kz-underglow group">
+                        <div class="pointer-events-none absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent kz-sheen" aria-hidden="true"></div>
+                        <svg viewBox="0 0 320 150" class="w-full h-full object-cover" role="img" aria-label="Neon-Highway Spielszene">
                             <defs>
                                 <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stop-color="#0f0529"/>
@@ -749,7 +797,7 @@
                             <!-- Synthwave Sky -->
                             <rect width="320" height="90" fill="url(#skyGrad)"/>
                             <!-- Retro Sun -->
-                            <circle cx="155" cy="72" r="26" fill="#fde047" opacity="0.9"/>
+                            <circle cx="155" cy="72" r="26" fill="#fde047" opacity="0.9" class="kz-sun"/>
                             <!-- City Skyline -->
                             <rect x="10" y="35" width="18" height="55" fill="#1e1b4b"/>
                             <rect x="32" y="45" width="14" height="45" fill="#311042"/>
@@ -785,7 +833,7 @@
                                 <rect x="61" y="22" width="11" height="12" rx="2" fill="#020617"/>
                             </g>
                         </svg>
-                        <div class="absolute bottom-2 left-2.5 right-2.5 flex justify-between items-center text-[10px] bg-slate-950/80 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-white/10">
+                        <div class="absolute bottom-2 left-2.5 right-2.5 flex justify-between items-center text-[10px] bg-slate-950/80 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-cyan-500/30 kz-underglow">
                             <span class="text-cyan-300 font-semibold"><i class="fa-solid fa-gamepad mr-1"></i> Scene: Level_02_NeonHighway.unity</span>
                             <span class="text-emerald-400 font-mono-code">60 FPS Target</span>
                         </div>
@@ -797,7 +845,7 @@
                     <h3 class="text-sm font-bold text-white px-1">Projekt-Aktionen</h3>
                     <div class="grid grid-cols-2 gap-2 text-xs font-medium">
                         <button onclick="openProjectModal('files')" class="cyber-card p-2.5 flex items-center gap-2.5 hover:border-cyan-400 transition-all text-left">
-                            <i class="fa-solid fa-folder text-blue-400 text-base"></i>
+                            <i class="fa-solid fa-folder-open text-cyan-400 text-base"></i>
                             <span>Ordner öffnen</span>
                         </button>
                         <button onclick="openProjectModal('terminal')" class="cyber-card p-2.5 flex items-center gap-2.5 hover:border-cyan-400 transition-all text-left">
@@ -830,8 +878,8 @@
                     <i class="fa-solid fa-house text-base"></i>
                     <span>Dashboard</span>
                 </button>
-                <button onclick="switchScreen('projekte')" class="flex flex-col items-center justify-center gap-0.5 text-blue-400 font-semibold">
-                    <i class="fa-solid fa-folder text-base drop-shadow-[0_0_8px_#3b82f6]"></i>
+                <button onclick="switchScreen('projekte')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold nav-active">
+                    <i class="fa-solid fa-folder text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Projekte</span>
                 </button>
                 <button onclick="switchScreen('tests')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
@@ -909,10 +957,12 @@
                     <h3 class="text-xs font-bold text-white mb-2">Test-Statistiken</h3>
                     <div class="flex items-center justify-between px-2">
                         <!-- Circular Donut Chart -->
-                        <div class="relative w-24 h-24 flex items-center justify-center">
+                        <div class="relative w-24 h-24 flex items-center justify-center" role="img" aria-label="Test-Statistik: 5 von 10 bestanden, 1 Warnung, 4 offen">
                             <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
                                 <path class="text-slate-800" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                                <path id="testDonutArc" class="text-emerald-400 transition-all duration-500" stroke-dasharray="50, 100" stroke-width="3.8" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                <path id="testDonutOpen" class="text-slate-500 transition-all duration-500" stroke-dasharray="40, 100" stroke-dashoffset="-60" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                <path id="testDonutWarn" class="text-amber-400 transition-all duration-500" stroke-dasharray="10, 100" stroke-dashoffset="-50" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                <path id="testDonutArc" class="text-emerald-400 transition-all duration-500" stroke-dasharray="50, 100" stroke-dashoffset="0" stroke-width="3.8" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                             </svg>
                             <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                                 <span id="testDonutLabel" class="text-base font-extrabold text-white leading-none">5/10</span>
@@ -953,8 +1003,8 @@
                     <i class="fa-solid fa-folder text-base"></i>
                     <span>Projekte</span>
                 </button>
-                <button onclick="switchScreen('tests')" class="flex flex-col items-center justify-center gap-0.5 text-blue-400 font-semibold">
-                    <i class="fa-solid fa-bullseye text-base drop-shadow-[0_0_8px_#3b82f6]"></i>
+                <button onclick="switchScreen('tests')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold nav-active">
+                    <i class="fa-solid fa-bullseye text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Tests</span>
                 </button>
                 <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
@@ -1037,8 +1087,8 @@
                     <i class="fa-solid fa-bullseye text-base"></i>
                     <span>Tests</span>
                 </button>
-                <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 text-blue-400 font-semibold">
-                    <i class="fa-solid fa-file-lines text-base drop-shadow-[0_0_8px_#3b82f6]"></i>
+                <button onclick="switchScreen('logs')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold nav-active">
+                    <i class="fa-solid fa-file-lines text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Logs</span>
                 </button>
                 <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 hover:text-slate-200">
@@ -1178,7 +1228,7 @@
                     <i class="fa-solid fa-file-lines text-base"></i>
                     <span>Logs</span>
                 </button>
-                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold">
+                <button onclick="switchScreen('agent')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold nav-active">
                     <i class="fa-solid fa-robot text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Agent</span>
                 </button>
@@ -1207,7 +1257,9 @@
 
             <!-- Header -->
             <div class="px-4 py-2 flex items-center gap-2.5 border-b border-[#15253f]">
-                <i class="fa-solid fa-gear text-slate-300 text-base"></i>
+                <div class="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </div>
                 <h2 class="text-base font-bold text-white">Einstellungen</h2>
             </div>
 
@@ -1354,8 +1406,8 @@
                     <i class="fa-solid fa-robot text-base"></i>
                     <span>Agent</span>
                 </button>
-                <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 text-blue-400 font-semibold">
-                    <i class="fa-solid fa-gear text-base drop-shadow-[0_0_8px_#3b82f6]"></i>
+                <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center gap-0.5 text-cyan-400 font-semibold nav-active">
+                    <i class="fa-solid fa-gear text-base drop-shadow-[0_0_8px_#00e5ff]"></i>
                     <span>Einstellungen</span>
                 </button>
             </nav>
@@ -1385,7 +1437,7 @@
 
     <!-- Floating Notification Toast -->
     <div id="cyberToast" class="fixed bottom-5 right-5 z-50 hidden bg-[#091526]/95 border border-cyan-400 text-slate-100 px-4 py-2.5 rounded-xl shadow-[0_0_20px_rgba(0,229,255,0.35)] text-xs flex items-center gap-2.5">
-        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+        <span id="cyberToastDot" class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
         <span id="cyberToastText">Aktion ausgeführt</span>
     </div>
 
@@ -1800,7 +1852,15 @@
             document.getElementById('countWarn').textContent = warn;
             document.getElementById('countOpen').textContent = open;
             document.getElementById('testDonutLabel').textContent = `${passed}/10`;
-            document.getElementById('testDonutArc').setAttribute('stroke-dasharray', `${pct}, 100`);
+            const passedPct = passed * 10;
+            const warnPct = warn * 10;
+            const openPct = open * 10;
+            const arc = document.getElementById('testDonutArc');
+            const warnArc = document.getElementById('testDonutWarn');
+            const openArc = document.getElementById('testDonutOpen');
+            if (arc) arc.setAttribute('stroke-dasharray', `${passedPct}, 100`);
+            if (warnArc) { warnArc.setAttribute('stroke-dasharray', `${warnPct}, 100`); warnArc.setAttribute('stroke-dashoffset', String(-passedPct)); }
+            if (openArc) { openArc.setAttribute('stroke-dasharray', `${openPct}, 100`); openArc.setAttribute('stroke-dashoffset', String(-(passedPct + warnPct))); }
         }
 
         function runRemainingTests() {
@@ -1986,9 +2046,14 @@
         }
 
         let toastTimeout = null;
-        function triggerActionToast(msg) {
+        function triggerActionToast(msg, type) {
             const toast = document.getElementById('cyberToast');
+            const dot = document.getElementById('cyberToastDot');
             document.getElementById('cyberToastText').textContent = msg;
+            if (dot) {
+                const color = type === 'WARN' ? 'bg-amber-400' : type === 'ERROR' || type === 'FIX' ? 'bg-rose-400' : type === 'PLAN' || type === 'TEST' || type === 'CODE' ? 'bg-emerald-400' : 'bg-cyan-400';
+                dot.className = 'w-2.5 h-2.5 rounded-full animate-ping ' + color;
+            }
             toast.classList.remove('hidden');
             clearTimeout(toastTimeout);
             toastTimeout = setTimeout(() => toast.classList.add('hidden'), 3200);
@@ -2012,9 +2077,12 @@
             const cpuVal = 65 + Math.floor(Math.random() * 8);
             const statCpu = document.getElementById('statCpu');
             const barCpu = document.getElementById('barCpu');
+            const cpuWrap = document.getElementById('cpuProgressWrap');
             if (statCpu && barCpu) {
                 statCpu.textContent = cpuVal + '%';
                 barCpu.style.width = cpuVal + '%';
+                barCpu.className = 'h-full transition-all duration-500 ' + (cpuVal < 70 ? 'bg-emerald-400' : cpuVal < 90 ? 'bg-amber-400' : 'bg-rose-400');
+                if (cpuWrap) cpuWrap.setAttribute('aria-valuenow', String(cpuVal));
             }
         }, 1000);
 
