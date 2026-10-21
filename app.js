@@ -1,2409 +1,1442 @@
-/* ============================================================
-   NEXUS CLAW V7.4.1 — Hybrid AI Office
-   Local-first dashboard prototype. No code execution.
-   ============================================================ */
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "nexus-claw-v741";
+  const STORAGE_KEY = "nexus-v7-autonomous";
+  const VERSION = 7;
 
-  const MODEL_SEED = [
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle", "1.5B"], status: "Verbunden", statusKind: "green" },
-    { id: "deepseek", name: "DeepSeek", sub: "Reasoning & Analyse", icon: "brain", accent: "#b379ff", family: "Reasoning", model: "deepseek-r1:latest", tags: ["Text", "Code", "Analyse"], status: "Bereit", statusKind: "green" },
-    { id: "codex", name: "Codex", sub: "OpenAI Agent (lokal/Cloud)", icon: "zap", accent: "#31d8ff", family: "Agent", model: "codex-latest", tags: ["Code", "Agent", "Tools"], status: "Bereit", statusKind: "green" },
-    { id: "opencode", name: "OpenCode", sub: "Autonomer Coding Agent", icon: "code", accent: "#3f8dff", family: "Agent", model: "opencode-latest", tags: ["Code", "Planung", "Ausführung"], status: "Bereit", statusKind: "green" },
-    { id: "copilot", name: "GitHub Copilot", sub: "Assistenz & Vorschläge", icon: "github", accent: "#8fbcff", family: "Assistenz", model: "github-copilot", tags: ["Code", "IDE"], status: "Verbunden", statusKind: "green" },
-    { id: "claude", name: "Claude Code", sub: "KI-Coding Agent", icon: "sparkles", accent: "#ffa53c", family: "Agent", model: "claude-sonnet", tags: ["Code", "Agent"], status: "Bereit", statusKind: "green" }
+  const AGENTS = [
+    { id: "rick", name: "Rick", code: "A1", role1: "Strategic Chaos", role2: "Portal-Mathe", skill: "Portal-Mathe", level: 8, portrait: "assets/agents/rick.png", color: "#2bd7ff", desc: "Zerlegt chaotische Probleme in präzise, prüfbare Schritte." },
+    { id: "peter", name: "Peter", code: "A2", role1: "Creative Order", role2: "Kreativität", skill: "Kreativität", level: 6, portrait: "assets/agents/peter.png", color: "#3c8cff", desc: "Erzeugt ungewöhnliche Lösungswege und neue Produktideen." },
+    { id: "morty", name: "Morty", code: "A3", role1: "Logik", role2: "Datenanalyse", skill: "Datenanalyse", level: 5, portrait: "assets/agents/morty.png", color: "#26d9ff", desc: "Sammelt Daten, erkennt Muster und bewertet Risiken." },
+    { id: "stewie", name: "Stewie", code: "A4", role1: "Tech-Arch", role2: "Tech-Gen", skill: "Tech-Gen", level: 5, portrait: "assets/agents/stewie.png", color: "#4a9dff", desc: "Entwirft Architektur, Code und technische Systeme." },
+    { id: "lois", name: "Lois", code: "A5", role1: "Data Dominion", role2: "Kommunikation", skill: "Kommunikation", level: 7, portrait: "assets/agents/lois.png", color: "#ff7e5f", desc: "Koordiniert Übergaben, Aufgaben und Kommunikation." },
+    { id: "happy", name: "Happy Tree", code: "A6", role1: "Data Domin", role2: "Test-Automation", skill: "Test-Automation", level: 6, portrait: "assets/agents/happy.png", color: "#38a4ff", desc: "Automatisiert Tests und prüft Qualitätsstandards." },
+    { id: "evil", name: "Evil Morty", code: "A7", role1: "Manipulation", role2: "Strategic Chaos", skill: "Strategic Chaos", level: 10, portrait: "assets/agents/evil.png", color: "#8b5cff", desc: "Analysiert Angriffsflächen, Grenzen und Manipulationsrisiken." },
+    { id: "archive", name: "Archive", code: "A8", role1: "Tech Arch", role2: "Wissensspeicher", skill: "Wissensspeicher", level: 10, portrait: "assets/agents/archive.png", color: "#7c5cff", desc: "Archiviert Entscheidungen, Snapshots und Wissen." }
   ];
 
-  const PROVIDERS = [
-    { id: "claude", name: "Claude Code", sub: "KI-Coding Agent", icon: "sparkles", accent: "#ffa53c", agent: "rick" },
-    { id: "codex", name: "Codex", sub: "OpenAI Agent", icon: "zap", accent: "#31d8ff", agent: "stewie" },
-    { id: "opencode", name: "OpenCode", sub: "Dev Agent", icon: "code", accent: "#3f8dff", agent: "stewie" },
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle", icon: "cpu", accent: "#8dff48", agent: "morty" },
-    { id: "deepseek", name: "DeepSeek", sub: "Reasoning Model", icon: "brain", accent: "#b379ff", agent: "morty" },
-    { id: "copilot", name: "GitHub Copilot", sub: "Code Assist", icon: "github", accent: "#8fbcff", agent: "stewie" }
-  ];
-
-  const AGENT_SEED = [
-    { id: "rick", name: "Rick", code: "R", role: "Strategie & Planung", focus: "Strategie und Planung", desc: "Zerlegt Ziele in prüfbare Schritte und priorisiert den nächsten Entwicklungszyklus.", accent: "#8dff48", status: "Bereit", task: "NEXUS Roadmap priorisieren" },
-    { id: "peter", name: "Peter", code: "P", role: "Kreativität", focus: "Kreativität", desc: "Erzeugt alternative Lösungswege, UI-Ideen und ungewöhnliche Produktansätze.", accent: "#ffa53c", status: "Bereit", task: "UI-Konzepte für V8" },
-    { id: "morty", name: "Morty", code: "M", role: "Recherche", focus: "Recherche", desc: "Sammelt Quellen, vergleicht Ansätze und bereitet technische Entscheidungen auf.", accent: "#31d8ff", status: "Aktiv", task: "Ollama-Modelle vergleichen" },
-    { id: "stewie", name: "Stewie", code: "S", role: "Entwicklung", focus: "Entwicklung", desc: "Plant Codeänderungen, formuliert Tests und dokumentiert technische Schulden.", accent: "#3f8dff", status: "Aktiv", task: "Loop-Grundgerüst prüfen" },
-    { id: "lois", name: "Lois", code: "L", role: "Organisation", focus: "Organisation", desc: "Hält Aufgaben, Büroräume und Übergaben zwischen Agenten konsistent.", accent: "#ff7fb0", status: "Bereit", task: "Wochenübersicht pflegen" },
-    { id: "tree", name: "Happy Tree", code: "H", role: "Ideenentwicklung", focus: "Ideenentwicklung", desc: "Verbindet schwache Signale zu neuen Feature-Ideen und Experimenten.", accent: "#a8ff6a", status: "Bereit", task: "Gameplay-Ideen sammeln" },
-    { id: "evil", name: "Evil Morty", code: "E", role: "Sicherheit", focus: "Sicherheit", desc: "Prüft Berechtigungen, Freigabegrenzen und riskante autonome Aktionen.", accent: "#ff5566", status: "Bereit", task: "Freigabe-Regeln auditieren" },
-    { id: "archive", name: "Archive", code: "A", role: "Archivierung", focus: "Archivierung", desc: "Ordnet Ergebnisse, Snapshots und Entscheidungen im Sandmann Archiv.", accent: "#b379ff", status: "Bereit", task: "Audit-Snapshot anlegen" }
-  ];
-
-  const ROOM_SEED = [
-    { id: "leitstelle", num: "01", name: "NEXUS Leitstelle", desc: "Zentrale Statusübersicht, Loop-Steuerung und Systemmeldungen.", accent: "#8dff48", occupants: ["R", "L"] },
-    { id: "planung", num: "02", name: "Planungsraum", desc: "Roadmaps, Priorisierung und Zerlegung großer Ziele.", accent: "#a8ff6a", occupants: ["R", "P"] },
-    { id: "entwicklung", num: "03", name: "Entwicklungsraum", desc: "Codeänderungen, Architektur und technische Umsetzung.", accent: "#3f8dff", occupants: ["S"] },
-    { id: "recherche", num: "04", name: "Recherchebüro", desc: "Quellen, Modellvergleiche und Wissensaufbereitung.", accent: "#31d8ff", occupants: ["M"] },
-    { id: "testlabor", num: "05", name: "Testlabor", desc: "Testpläne, Verifikation und reproduzierbare Fehlerbilder.", accent: "#ffd34e", occupants: ["S", "H"] },
-    { id: "archiv", num: "06", name: "Sandmann Archiv", desc: "Snapshots, Entscheidungsprotokolle und stabile Meilensteine.", accent: "#b379ff", occupants: ["A"] },
-    { id: "sicherheit", num: "07", name: "Sicherheitsbüro", desc: "Berechtigungen, Freigaben und Grenzen autonomer Aktionen.", accent: "#ff5566", occupants: ["E"] },
-    { id: "privat", num: "08", name: "Persönliches Büro", desc: "Notizen, Favoriten und lokale Arbeitsmittel.", accent: "#ff7fb0", occupants: ["L"] }
-  ];
-
-  const SKILL_SEED = [
-    { id: "duckgo", name: "mcp-duckgo", desc: "Websuche und Scraping über den DuckDuckGo MCP-Server.", source: "aahl/skills", tag: "Recherche", enabled: true },
-    { id: "images", name: "image-search", desc: "Bildrecherche mit Größen-, Farb- und Lizenzfiltern.", source: "z0gsh1u/oh-my-writing-skill", tag: "Medien", enabled: true },
-    { id: "gauntlet", name: "gauntlet-loop", desc: "Qualitätsbarren, Builder/Critic-Schleifen und blinde Vergleiche.", source: "robonuggets/gauntlet-loop", tag: "Qualität", enabled: true },
-    { id: "sketchfab", name: "load-sketchfab-threejs", desc: "GLB-Assets prüfen, normalisieren und in Three.js laden.", source: "local", tag: "3D", enabled: false },
-    { id: "zen", name: "opencode-zen-completions", desc: "OpenAI-kompatible Completions über die OpenCode Zen API.", source: "local", tag: "KI", enabled: true },
-    { id: "review", name: "code-review", desc: "Strukturierte Prüfung von Diffs vor der Freigabe.", source: "local", tag: "Entwicklung", enabled: true },
-    { id: "test", name: "test-automation", desc: "Testfälle ableiten, ausführen und Fehlerursachen eingrenzen.", source: "local", tag: "Test", enabled: false },
-    { id: "audit", name: "audit-export", desc: "Audit-Protokolle filtern und als JSON exportieren.", source: "local", tag: "System", enabled: true }
-  ];
-
-  const DEMO_MODELS = [
-    { name: "qwen2.5-coder:1.5b", size: "1.0 GB", installed: true },
-    { name: "deepseek-r1:1.5b", size: "1.1 GB", installed: true },
-    { name: "qwen2.5:3b", size: "1.9 GB", installed: true },
-    { name: "llama3:8b", size: "4.7 GB", installed: true },
-    { name: "nomic-embed-text", size: "274 MB", installed: false }
-  ];
-
-  const LOOP_PHASES = ["Analyse", "Planung", "Entwicklung", "Tests", "Fehlerbehebung", "Dokumentation", "Lernen"];
-
-  const LOOP_LOG_STAGES = [
-    { title: "Planung", time: "20:42", lines: [
-      { tag: "NEXUS", text: "Repository analysieren …", end: "OK", tone: "green" },
-      { tag: "DeepSeek", text: "Ziele und Prioritäten gesetzt" },
-      { tag: "Ollama", text: "Modell: qwen2.5-coder:1.5b (lokal)" }
-    ] },
-    { title: "Code ändern", time: "20:44", lines: [
-      { tag: "OpenCode", text: "Änderungen umgesetzt: 12 Dateien (+642/−38)" },
-      { tag: "Stewie", text: "Commit: feat: add game logic and test case" },
-      { tag: "Stewie", text: "Branch: nexus-dev" }
-    ] },
-    { title: "Tests ausführen", time: "20:45", lines: [
-      { tag: "Unity", text: "10/10 Tests bestanden (Gameplay)", end: "✓", tone: "green" },
-      { tag: "Performance", text: "FPS: 60  |  Memory: 512 MB" },
-      { tag: "E2E", text: "Keine Fehler gefunden" }
-    ] },
-    { title: "Fehlerbehebung", time: "20:46", lines: [
-      { tag: "NEXUS", text: "Keine kritischen Fehler" },
-      { tag: "DeepSeek", text: "Code-Review erfolgreich abgeschlossen." }
-    ] },
-    { title: "Dokumentation", time: "20:46", lines: [
-      { tag: "GitHub", text: "Protokoll aktualisiert" }
-    ] }
-  ];
-
-  const LIBRARY_SEED = [
-    { id: "f1", name: "app.py", type: "Python", size: "24 KB", updated: "19.10.2026", project: "NEXUS V7", status: "Aktiv", icon: "code", accent: "#31d8ff" },
-    { id: "f2", name: "agent_orchestrator.py", type: "Python", size: "18 KB", updated: "18.10.2026", project: "NEXUS V7", status: "Aktiv", icon: "code", accent: "#31d8ff" },
-    { id: "f3", name: "dashboard.html", type: "HTML", size: "42 KB", updated: "19.10.2026", project: "NEXUS V7", status: "Aktiv", icon: "file", accent: "#ffa53c" },
-    { id: "f4", name: "loop_engine.py", type: "Python", size: "31 KB", updated: "17.10.2026", project: "NEXUS V7", status: "Entwurf", icon: "file", accent: "#ffd34e" },
-    { id: "f5", name: "GameLogic.cs", type: "C#", size: "88 KB", updated: "16.10.2026", project: "Unity Game", status: "Aktiv", icon: "code", accent: "#b379ff" },
-    { id: "f6", name: "player_controller.cs", type: "C#", size: "12 KB", updated: "15.10.2026", project: "Unity Game", status: "Aktiv", icon: "code", accent: "#b379ff" },
-    { id: "f7", name: "horus.sh", type: "Bash", size: "7 KB", updated: "12.10.2026", project: "Horus Tools", status: "Pause", icon: "terminal", accent: "#8dff48" },
-    { id: "f8", name: "proot_setup.md", type: "Markdown", size: "4 KB", updated: "11.10.2026", project: "Horus Tools", status: "Pause", icon: "note", accent: "#8dff48" },
-    { id: "f9", name: "model_eval.ipynb", type: "Notebook", size: "124 KB", updated: "14.10.2026", project: "KI-Modelle Test", status: "Aktiv", icon: "file", accent: "#8dff48" },
-    { id: "f10", name: "README.md", type: "Markdown", size: "3 KB", updated: "10.10.2026", project: "Experimente", status: "Archiv", icon: "note", accent: "#6f8989" }
-  ];
-
-  const ROUTES = {
-    home: { title: "Übersicht", eyebrow: "NEXUS LEITSTELLE", sub: "Systemstatus, Agenten und Loop auf einen Blick." },
-    status: { title: "Status", eyebrow: "SYSTEM STATUS", sub: "Messwerte, Verbindungen und aktive Sitzungen." },
-    models: { title: "Modellzentrale", eyebrow: "KI-MODELLE · ROUTING", sub: "Lokale Modelle verbinden, prüfen und Aufgaben zuweisen." },
-    loop: { title: "Entwicklungs-Loop", eyebrow: "AUTONOMER ZYKLUS · SIMULATION", sub: "Kontrollierter Prototyp-Zyklus ohne echte Codeausführung." },
-    projects: { title: "Projekte", eyebrow: "ARBEITSBEREICHE", sub: "Aktive Vorhaben, Experimente und archivierte Meilensteine." },
-    more: { title: "Mehr", eyebrow: "ALLE BEREICHE", sub: "Alle Module der NEXUS CLAW Steuerzentrale." },
-    agents: { title: "KI-Agenten", eyebrow: "AGENTENPROFILE", sub: "Acht spezialisierte Profile für Planung, Entwicklung und Prüfung." },
-    rooms: { title: "Digitale Büroräume", eyebrow: "BÜROSTRUKTUR", sub: "Acht thematische Räume als organisatorische Struktur." },
-    skills: { title: "Skills", eyebrow: "WERKZEUGE & FÄHIGKEITEN", sub: "Verfügbare Fähigkeiten und ihre Aktivierung im Prototyp." },
-    library: { title: "Bibliothek", eyebrow: "DATEIEN · READ ONLY", sub: "Projektdateien durchsuchen – ohne Schreibzugriff." },
-    tasks: { title: "Aufgaben", eyebrow: "AUFGABENVERWALTUNG", sub: "Aufgaben planen, priorisieren und lokal speichern." },
-    chat: { title: "Lokaler KI-Chat", eyebrow: "OLLAMA · LOKAL", sub: "Anfragen an das konfigurierte Modell senden." },
-    notes: { title: "Notizen", eyebrow: "LOKAL · LOCALSTORAGE", sub: "Kurze Notizen, Ideen und technische Merkzettel." },
-    settings: { title: "Einstellungen", eyebrow: "SYSTEM & SICHERHEIT", sub: "Ollama, Limits, Theme und Freigaberegeln." },
-    audit: { title: "Audit-Protokoll", eyebrow: "LIVE-PROTOKOLL", sub: "Nachvollziehbare Ereignisse aus dem Prototyp." },
-    terminal: { title: "Terminal (Horus Linux)", eyebrow: "SIMULIERTE SHELL", sub: "Befehle werden ausschließlich simuliert." }
+  const AGENT_SKILLS = {
+    rick: [
+      { name: "Portal-Mathe", level: 8, desc: "Berechnung multidimensionaler Portale und Wahrscheinlichkeiten.", icon: "skills" },
+      { name: "Strategie", level: 6, desc: "Langfristige Planung und Chaos-Analyse.", icon: "grid" },
+      { name: "Analyse", level: 5, desc: "Systemanalysen und Mustererkennung.", icon: "brain" },
+      { name: "Mutation", level: 4, desc: "Kreative Entwicklung neuer Ansätze.", icon: "bolt" }
+    ],
+    default: [
+      { name: "Analyse", level: 6, desc: "Strukturierte Auswertung von Systemen und Signalen.", icon: "brain" },
+      { name: "Planung", level: 5, desc: "Zerlegung von Zielen in prüfbare Schritte.", icon: "grid" },
+      { name: "Umsetzung", level: 4, desc: "Kontrollierte Durchführung im Arbeitsbereich.", icon: "skills" },
+      { name: "Mutation", level: 3, desc: "Kreative Entwicklung neuer Ansätze.", icon: "bolt" }
+    ]
   };
 
-  const NAV_GROUPS = [
-    { label: "Steuerung", items: ["home", "status", "models", "loop", "projects"] },
-    { label: "KI-Betrieb", items: ["agents", "rooms", "skills", "chat"] },
-    { label: "Werkzeuge", items: ["tasks", "notes", "library", "terminal", "audit"] },
-    { label: "System", items: ["settings"] }
+  const PROJECTS = [
+    { id: "p1", name: "NEXUS V7", type: "Android / Python", status: "Aktiv", updated: "2026-10-16", icon: "file", c1: "#146dff", c2: "#0c3fa0", progress: 72, desc: "Lokales KI-Büro und autonome Agentensteuerung." },
+    { id: "p2", name: "Unity Game", type: "C# / Unity", status: "In Arbeit", updated: "2026-10-15", icon: "gamepad", c1: "#ff9d22", c2: "#c74b07", progress: 46, desc: "Gameplay-Prototyp mit modularen Systemen." },
+    { id: "p3", name: "KI-Modelle Test", type: "Python", status: "Aktiv", updated: "2026-10-14", icon: "brain", c1: "#8d4cff", c2: "#4c17a8", progress: 88, desc: "Benchmarks und Routing-Vergleiche lokaler Modelle." },
+    { id: "p4", name: "Horus Tools", type: "Bash / Linux", status: "Pause", updated: "2026-10-12", icon: "folder", c1: "#25d16d", c2: "#0b7437", progress: 63, desc: "Termux-Werkzeuge, proot und Shell-Integration." },
+    { id: "p5", name: "Experimente", type: "Diverses", status: "Archiv", updated: "2026-10-10", icon: "star", c1: "#9b4dff", c2: "#5a17b5", progress: 100, desc: "Archivierte Prototypen und verworfene Ansätze." }
   ];
 
-  const NAV_ICONS = {
-    home: "home", status: "activity", models: "cpu", loop: "loop", projects: "folder", more: "more",
-    agents: "users", rooms: "grid", skills: "tools", library: "book", tasks: "check-square",
-    chat: "chat", notes: "note", settings: "settings", audit: "activity", terminal: "terminal"
+  const TASKS = [
+    { id: "t1", title: "Unity Projekt einrichten", priority: "hoch", status: "offen", agent: "rick", due: "2026-10-16" },
+    { id: "t2", title: "KI-Modelle evaluieren", priority: "mittel", status: "arbeit", agent: "stewie", due: "2026-10-16" },
+    { id: "t3", title: "Gameplay testen", priority: "mittel", status: "arbeit", agent: "happy", due: "2026-10-15" },
+    { id: "t4", title: "UI verbessern", priority: "niedrig", status: "offen", agent: "peter", due: "2026-10-14" },
+    { id: "t5", title: "Fehleranalyse", priority: "hoch", status: "offen", agent: "morty", due: "2026-10-14" },
+    { id: "t6", title: "Ollama-Verbindung dokumentieren", priority: "mittel", status: "erledigt", agent: "lois", due: "2026-10-13" }
+  ];
+
+  const AUDIT_TYPES = {
+    mutation: { color: "#a94dff", icon: "bolt", label: "mutation", group: "mutation" },
+    note_create: { color: "#ffd12e", icon: "note", label: "note_create", group: "notes" },
+    personality_change: { color: "#21d9ff", icon: "user", label: "personality_change", group: "system" },
+    note_delete: { color: "#ffd12e", icon: "note", label: "note_delete", group: "notes" },
+    safety_change: { color: "#2cff8f", icon: "shield", label: "safety_change", group: "system" },
+    rollback: { color: "#ffd12e", icon: "refresh", label: "rollback", group: "system" },
+    note_update: { color: "#ff9b2f", icon: "note", label: "note_update", group: "notes" },
+    system: { color: "#21d9ff", icon: "monitor", label: "system", group: "system" },
+    skill: { color: "#a94dff", icon: "skills", label: "skill", group: "skills" },
+    test: { color: "#2cff8f", icon: "check-circle", label: "test", group: "system" }
   };
 
-  const BOTTOM_NAV = ["home", "status", "loop", "settings", "more"];
+  const SEED_AUDIT = [
+    { id: "a1", time: "14:35:12", type: "mutation", actor: "Rick", text: "/ Portal-Mathe Lv. 8 → 9" },
+    { id: "a2", time: "14:33:45", type: "note_create", actor: "", text: "Unity Projekt eingerichtet" },
+    { id: "a3", time: "14:31:27", type: "personality_change", actor: "Morty", text: "→ rotzig" },
+    { id: "a4", time: "14:28:11", type: "mutation", actor: "Stewie", text: "/ Tech-Gen Lv. 9 → 10" },
+    { id: "a5", time: "14:24:09", type: "note_delete", actor: "", text: "test-notiz-1" },
+    { id: "a6", time: "14:20:33", type: "safety_change", actor: "", text: "aktiviert" },
+    { id: "a7", time: "14:18:55", type: "rollback", actor: "", text: "mutation #a1b2c3d4" },
+    { id: "a8", time: "14:15:02", type: "note_update", actor: "", text: "Gameplay testen" },
+    { id: "a9", time: "14:12:37", type: "system", actor: "", text: "Server gestartet" },
+    { id: "a10", time: "14:10:22", type: "mutation", actor: "Happy Tree", text: "/ Test-Auto Lv. 6 → 7" }
+  ];
 
-  const AUDIT_STYLE = {
-    mutation: { icon: "code", color: "#b379ff" },
-    note: { icon: "note", color: "#8dff48" },
-    personality: { icon: "users", color: "#b379ff" },
-    test: { icon: "check-square", color: "#8dff48" },
-    code: { icon: "code", color: "#31d8ff" },
-    safety: { icon: "shield", color: "#ffa53c" },
-    rollback: { icon: "refresh", color: "#ff5566" },
-    system: { icon: "radio", color: "#3f8dff" },
-    model: { icon: "cpu", color: "#8dff48" },
-    loop: { icon: "loop", color: "#31d8ff" },
-    chat: { icon: "chat", color: "#8dff48" },
-    project: { icon: "folder", color: "#ffa53c" }
-  };
+  const MODELS = [
+    { id: "qwen2.5:latest", name: "qwen2.5:latest", color: "linear-gradient(160deg,#a44dff,#5a15b8)", icon: "brain", tags: ["Chat", "Code"] },
+    { id: "deepseek-r1:latest", name: "deepseek-r1:latest", color: "linear-gradient(160deg,#176dff,#0a3f9e)", icon: "brain", tags: ["Analyse", "Code"] },
+    { id: "llama3:latest", name: "llama3:latest", color: "linear-gradient(160deg,#e9eef5,#8794a3)", icon: "grid", tags: ["Chat", "Instruct"], dark: true },
+    { id: "mistral:latest", name: "mistral:latest", color: "linear-gradient(160deg,#ff8a1c,#d14300)", icon: "bolt", tags: ["Schnell", "Code"] }
+  ];
 
-  const PRIORITY = {
-    hoch: { cls: "red", color: "var(--red)" },
-    mittel: { cls: "orange", color: "var(--orange)" },
-    niedrig: { cls: "green", color: "var(--green)" }
-  };
+  const SEED_TERMINAL = [
+    { type: "prompt", cmd: "git status" },
+    { type: "out", text: "Auf Branch main\nnichts zu committen, Arbeitsverzeichnis sauber" },
+    { type: "prompt", cmd: "ollama list" },
+    { type: "out", text: "NAME         ID       SIZE   MODIFIED\nqwen2.5      a1b2c3d4 4.1 GB 2 days ago\ndeepseek-r1  d4c3b2a1 7.8 GB 3 days ago\nllama3       e5f6a7b8 4.7 GB 5 days ago" },
+    { type: "prompt", cmd: "python server.py" },
+    { type: "out", text: "* Running on http://127.0.0.1:5000\n* Press CTRL+C to quit" }
+  ];
 
-  const TASK_STATUS = {
-    offen: { label: "Offen", cls: "red" },
-    arbeit: { label: "In Arbeit", cls: "orange" },
-    erledigt: { label: "Erledigt", cls: "green" }
-  };
+  const LOOP_PHASES = ["Analyse", "Planung", "Freigabe", "Entwicklung", "Tests", "Fehlerbehebung", "Lernen"];
+  const DASH_PHASES = ["Analyse", "Planung", "Freigabe", "Entwicklung", "Tests", "Lernen"];
 
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
-  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
-  const icon = (name, cls = "ico") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
-  const uid = (prefix = "id") => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-  const pad = (n) => String(n).padStart(2, "0");
-  const timeNow = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
-  const clockNow = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-  const isoDaysAgo = (days) => new Date(Date.now() - days * 86400000).toISOString();
-  const formatDate = (iso) => { const d = new Date(iso); if (Number.isNaN(d.getTime())) return "–"; return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`; };
-  const relativeTime = (iso) => {
-    const ms = Date.now() - new Date(iso).getTime();
-    if (!Number.isFinite(ms)) return "–";
-    const mins = Math.max(1, Math.round(ms / 60000));
-    if (mins < 60) return `vor ${mins} Min.`;
-    const hrs = Math.round(mins / 60);
-    if (hrs < 24) return `vor ${hrs} Std.`;
-    const days = Math.round(hrs / 24);
-    return days === 1 ? "gestern" : `vor ${days} Tagen`;
-  };
-  const cleanUrl = (url) => String(url || "").trim().replace(/\/+$/, "");
-  const agentById = (id) => AGENT_SEED.find((a) => a.id === id) || null;
-
-  /* ---------- Default state ---------- */
   function freshState() {
     return {
-      version: 1,
+      version: VERSION,
       settings: {
         ollamaUrl: "http://127.0.0.1:11434",
-        model: "qwen2.5-coder:1.5b",
-        language: "de",
-        theme: "cyberpunk",
-        safety: { controller: true, autonomous: false, codeExec: false, network: false, release: true },
-        limits: { mutations: 20, cooldown: 60 }
+        model: "qwen2.5:latest",
+        language: "Deutsch",
+        theme: "Cyberpunk (Dark)",
+        safety: { controller: true, autonomous: true, codeExec: false, network: false },
+        system: { dir: "~/.nexus_v7", logs: 30, autostart: false }
       },
-      tasks: [
-        { id: "t1", title: "Unity Project einrichten", priority: "hoch", status: "offen", agent: "rick", project: "Unity Game", due: "2026-10-16" },
-        { id: "t2", title: "KI-Modelle evaluieren", priority: "mittel", status: "arbeit", agent: "stewie", project: "KI-Modelle Test", due: "2026-10-19" },
-        { id: "t3", title: "Gameplay testen", priority: "mittel", status: "arbeit", agent: "tree", project: "Unity Game", due: "2026-10-15" },
-        { id: "t4", title: "UI verbessern", priority: "niedrig", status: "offen", agent: "peter", project: "NEXUS V7", due: "2026-10-20" },
-        { id: "t5", title: "Fehleranalyse", priority: "hoch", status: "offen", agent: "morty", project: "NEXUS V7", due: "2026-10-14" },
-        { id: "t6", title: "Ollama-Verbindung dokumentieren", priority: "mittel", status: "erledigt", agent: "lois", project: "NEXUS V7", due: "2026-10-13" }
-      ],
-      notes: [
-        { id: "n1", title: "Loop-Architektur", body: "7 Phasen pro Zyklus: Analyse → Planung → Entwicklung → Tests → Fehlerbehebung → Dokumentation → Lernen.\n\nMutationen nur nach Freigabe. Jeder Zyklus erzeugt einen Audit-Eintrag.", updated: isoDaysAgo(0.08), accent: "#31d8ff" },
-        { id: "n2", title: "Ollama Setup", body: "ollama serve\nOLLAMA_ORIGINS=* für Browser-Zugriff\n\nStandardmodell: qwen2.5-coder:1.5b\nDashboard: http://127.0.0.1:5000", updated: isoDaysAgo(0.22), accent: "#8dff48" },
-        { id: "n3", title: "Ideen für V8", body: "• Agenten-Orchestrierung\n• Echte Sandbox mit Ressourcenlimits\n• Exportierbares Audit-Protokoll\n• Skill-Marketplace und Rollenrechte", updated: isoDaysAgo(1), accent: "#b379ff" }
-      ],
-      projects: [
-        { id: "p1", name: "NEXUS V7", type: "Android / Python", status: "Aktiv", language: "Kotlin · Python", updated: "2026-10-16", progress: 72, accent: "#31d8ff", icon: "code", desc: "Hybrid AI Office Dashboard und lokale Agentenbasis." },
-        { id: "p2", name: "Unity Game", type: "C# / Unity", status: "In Arbeit", language: "C#", updated: "2026-10-15", progress: 46, accent: "#ffa53c", icon: "grid", desc: "Gameplay-Prototyp mit modularen Systemen." },
-        { id: "p3", name: "KI-Modelle Test", type: "Python", status: "Aktiv", language: "Python · Jupyter", updated: "2026-10-14", progress: 88, accent: "#8dff48", icon: "brain", desc: "Benchmarks und Routing-Vergleiche lokaler Modelle." },
-        { id: "p4", name: "Horus Tools", type: "Bash / Linux", status: "Pause", language: "Bash · C", updated: "2026-10-12", progress: 63, accent: "#b379ff", icon: "terminal", desc: "Termux-Werkzeuge, proot und Shell-Integration." },
-        { id: "p5", name: "Experimente", type: "Diverses", status: "Archiv", language: "Mixed", updated: "2026-10-10", progress: 100, accent: "#6f8989", icon: "archive", desc: "Archivierte Prototypen und verworfene Ansätze." }
-      ],
-      sessions: [
-        { id: "s1", name: "NEXUS-Dev-Session", status: "Läuft", started: timeNow() },
-        { id: "s2", name: "DeepSeek-Analyse", status: "Bereit", started: timeNow() }
-      ],
-      skills: Object.fromEntries(SKILL_SEED.map((s) => [s.id, s.enabled])),
-      chat: {
-        agent: "nexus",
-        messages: [
-          { id: "m1", role: "assistant", text: "NEXUS CLAW online. Ich bin die lokale Chat-Schnittstelle.\n\nVerbinde Ollama in der Modellzentrale, um echte Antworten zu erhalten. Ohne Verbindung antworte ich im klar gekennzeichneten Demo-Modus.", time: "14:35", demo: true }
-        ]
-      },
+      tasks: TASKS.map((t) => ({ ...t })),
+      projects: PROJECTS.map((p) => ({ ...p })),
+      audit: SEED_AUDIT.map((a) => ({ ...a })),
+      terminal: SEED_TERMINAL.map((l) => ({ ...l })),
+      metrics: { cpu: 24, ram: 3.2, storage: 12.4, battery: 92 },
+      connection: { status: "ok", checkedAt: Date.now(), models: [] },
       loop: {
-        running: false, paused: false, cycle: 3, total: 10, progress: 100, phaseIndex: 6,
-        task: "Unity-Gameplay verbessern", owner: "Morty",
-        steps: ["Projekt analysieren", "Code-Änderungen erstellen", "Tests ausführen", "Fehler beheben"]
+        running: false, paused: false, cycle: 3, total: 10, progress: 35, completed: 4,
+        interval: 5, mutationChance: 12, elapsed: 135,
+        phase: "Planung", lastAction: "Projektanalyse", nextAction: "Freigabe",
+        task: "Unity-Gameplay verbessern"
       },
-      audit: [
-        { id: "a1", time: "14:35:12", type: "mutation", actor: "Rick", text: "/ Portal-Mathe Lv. 8 → 9" },
-        { id: "a2", time: "14:33:45", type: "note", actor: "note_create", text: "Unity Project eingerichtet" },
-        { id: "a3", time: "14:31:27", type: "personality", actor: "personality_change", text: "Morty → rotzig" },
-        { id: "a4", time: "14:28:11", type: "test", actor: "test_run", text: "18/18 Tests erfolgreich" },
-        { id: "a5", time: "14:24:09", type: "code", actor: "code_change", text: "game_logic.py (#42/38)" },
-        { id: "a6", time: "14:20:33", type: "safety", actor: "safety_change", text: "Freigaberegeln aktiviert" },
-        { id: "a7", time: "14:18:55", type: "rollback", actor: "rollback", text: "mutation #a1b2c3d4" },
-        { id: "a8", time: "14:16:02", type: "note", actor: "note_update", text: "Gameplay testen" },
-        { id: "a9", time: "14:12:37", type: "system", actor: "system", text: "Server gestartet" },
-        { id: "a10", time: "14:10:22", type: "model", actor: "model_change", text: "deepseek-r1:latest" }
-      ],
-      connection: { status: "unbekannt", checkedAt: 0, models: DEMO_MODELS },
-      terminal: [
-        { kind: "sys", text: "NEXUS CLAW · Horus Linux Runtime v7.4.1" },
-        { kind: "dim", text: "Simulierte Shell · keine echte Codeausführung" },
-        { kind: "dim", text: 'Tippe "help" für verfügbare Befehle.' }
-      ],
+      modelTest: {
+        model: "deepseek-r1:latest",
+        prompt: "Erkläre kurz das Konzept von NEXUS V7.",
+        answer: "NEXUS V7 ist ein lokales KI-Büro für Android, das mehrere spezialisierte KI-Agenten mit Ollama-Modellen verbindet, um Projekte autonom zu planen, zu entwickeln, zu testen und zu verbessern."
+      },
       customModels: [],
-      ui: { projectFilter: "alle", taskFilter: "alle", auditFilter: "alle", noteQuery: "", libraryQuery: "" }
+      agentLevels: Object.fromEntries(AGENTS.map((a) => [a.id, a.level])),
+      skillLevels: {},
+      customSkills: {},
+      mutationResult: { levelFrom: 8, levelTo: 9, versionFrom: 4, versionTo: 5, hash: "a1b2c3… → d4e5f6…" },
+      ui: {
+        selectedAgent: "rick",
+        agentTab: "skills",
+        taskFilter: "alle",
+        projectFilter: "alle",
+        auditFilter: "Alle",
+        terminalTab: "terminal",
+        mutationMode: "manuell",
+        mutationAgent: "rick",
+        mutationSkill: "Portal-Mathe",
+        mutationContent: "Erweiterte Berechnung von stabilen Portalrouten unter Berücksichtigung von Zeitdilation und Multiverseninstabilitäten."
+      }
     };
   }
 
-  function mergeDefaults(saved, defaults) {
-    if (Array.isArray(defaults)) return Array.isArray(saved) ? saved : defaults;
-    if (defaults && typeof defaults === "object") {
-      const out = { ...defaults };
-      if (saved && typeof saved === "object") {
-        for (const key of Object.keys(saved)) {
-          out[key] = key in defaults ? mergeDefaults(saved[key], defaults[key]) : saved[key];
-        }
-      }
-      return out;
-    }
-    return saved === undefined ? defaults : saved;
+  function mergeState(base, saved) {
+    if (!saved || saved.version !== VERSION) return base;
+    return {
+      ...base,
+      ...saved,
+      settings: {
+        ...base.settings,
+        ...(saved.settings || {}),
+        safety: { ...base.settings.safety, ...(saved.settings?.safety || {}) },
+        system: { ...base.settings.system, ...(saved.settings?.system || {}) }
+      },
+      loop: { ...base.loop, ...(saved.loop || {}) },
+      metrics: { ...base.metrics, ...(saved.metrics || {}) },
+      connection: { ...base.connection, ...(saved.connection || {}) },
+      modelTest: { ...base.modelTest, ...(saved.modelTest || {}) },
+      agentLevels: { ...base.agentLevels, ...(saved.agentLevels || {}) },
+      skillLevels: { ...base.skillLevels, ...(saved.skillLevels || {}) },
+      customSkills: { ...base.customSkills, ...(saved.customSkills || {}) },
+      ui: { ...base.ui, ...(saved.ui || {}) }
+    };
   }
 
-  const DEFAULTS = freshState();
-  let state;
+  let state = freshState();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    state = raw ? mergeDefaults(JSON.parse(raw), DEFAULTS) : freshState();
-  } catch {
-    state = freshState();
-  }
+    if (raw) state = mergeState(freshState(), JSON.parse(raw));
+  } catch { state = freshState(); }
 
-  const ui = {
-    loopTimer: null,
-    chatTyping: false,
-    connectionTesting: false,
-    lastRoute: null,
-    metrics: { storage: 96.8, ram: 2.0, battery: 96 },
-    modalReturnFocus: null
-  };
+  AGENTS.forEach((agent) => {
+    const level = Number(state.agentLevels?.[agent.id]);
+    if (Number.isFinite(level)) agent.level = Math.max(1, Math.min(10, level));
+  });
+
+  const ui = { timer: null, connectionBusy: false, lastFocus: null };
 
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* storage unavailable */ }
   }
 
-  function addAudit(type, text, actor = "system") {
+  function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function icon(name, cls = "") { return `<svg class="ico ${cls}"><use href="#i-${name}"/></svg>`; }
+  function agentById(id) { return AGENTS.find((a) => a.id === id); }
+  function uid(prefix = "id") { return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`; }
+  function timeNow() { return new Date().toLocaleTimeString("de-DE", { hour12: false }); }
+  function todayISO() { return new Date().toISOString().slice(0, 10); }
+  function formatDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(`${iso}T12:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+  function dotPath(obj, path) {
+    return path.split(".").reduce((acc, key) => (acc ? acc[key] : undefined), obj);
+  }
+  function setPath(obj, path, value) {
+    const parts = path.split(".");
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) cur = cur[parts[i]];
+    cur[parts[parts.length - 1]] = value;
+  }
+  function addAudit(type, actor, text) {
+    const meta = AUDIT_TYPES[type] || AUDIT_TYPES.system;
     state.audit.unshift({ id: uid("a"), time: timeNow(), type, actor, text });
-    state.audit = state.audit.slice(0, 140);
+    state.audit = state.audit.slice(0, 120);
+    if (!state.audit.length) state.audit = [];
     save();
   }
-
-  function toast(message, kind = "ok") {
+  function toast(message, tone = "") {
     const stack = $("#toastStack");
     if (!stack) return;
     const el = document.createElement("div");
-    el.className = `toast ${kind === "ok" ? "" : kind}`;
-    el.innerHTML = `${icon(kind === "err" || kind === "warn" ? "alert" : "check")}<span>${esc(message)}</span>`;
+    el.className = `toast ${tone}`;
+    el.innerHTML = `${icon(tone === "err" ? "x" : tone === "warn" ? "alert" : "check-circle")}<span>${esc(message)}</span>`;
     stack.appendChild(el);
-    setTimeout(() => {
-      el.style.opacity = "0";
-      el.style.transform = "translateX(12px)";
-      el.style.transition = "opacity 180ms ease, transform 180ms ease";
-      setTimeout(() => el.remove(), 220);
-    }, 3200);
+    setTimeout(() => el.remove(), 2800);
   }
+  function $(sel, root = document) { return root.querySelector(sel); }
+  function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
 
-  /* ---------- Routing ---------- */
-  const getRoute = () => {
+  /* ---------------- routing ---------------- */
+  const ROUTES = {
+    home: { title: "Dashboard", eyebrow: "NEXUS V7 · ZENTRALE" },
+    agents: { title: "Agenten", eyebrow: "KI-AGENTEN" },
+    agent: { title: "Agent", eyebrow: "AGENTENPROFIL" },
+    mutation: { title: "Skill-Mutation", eyebrow: "SKILLS" },
+    models: { title: "KI-Modelle", eyebrow: "OLLAMA" },
+    loop: { title: "Entwicklungsloop", eyebrow: "AUTONOMER ZYKLUS" },
+    projects: { title: "Projekte", eyebrow: "PROJEKTVERWALTUNG" },
+    tasks: { title: "To-Do Tafel", eyebrow: "AUFGABEN" },
+    terminal: { title: "Terminal", eyebrow: "HORUS LINUX" },
+    audit: { title: "Audit-Log", eyebrow: "PROTOKOLL" },
+    status: { title: "Systemmonitor", eyebrow: "SYSTEM" },
+    settings: { title: "Einstellungen", eyebrow: "KONFIGURATION" },
+    menu: { title: "Menü", eyebrow: "ALLE BEREICHE" }
+  };
+  const BOTTOM_NAV = [
+    { route: "home", label: "Home", icon: "home" },
+    { route: "agents", label: "Agenten", icon: "agent" },
+    { route: "loop", label: "Loop", icon: "loop" },
+    { route: "projects", label: "Projekte", icon: "folder" },
+    { route: "menu", label: "Menü", icon: "menu-dots" }
+  ];
+  const MENU_ROUTES = new Set(["menu", "models", "mutation", "tasks", "terminal", "audit", "status", "settings"]);
+
+  function getRoute() {
     const match = location.hash.match(/^#\/([a-z-]+)/);
     return match && ROUTES[match[1]] ? match[1] : "home";
-  };
-
+  }
   function navigate(route) {
     if (!ROUTES[route]) route = "home";
     if (location.hash === `#/${route}`) renderRoute();
     else location.hash = `#/${route}`;
   }
-
+  function activeNav(route) {
+    if (route === "agent") return "agents";
+    if (MENU_ROUTES.has(route)) return "menu";
+    return route;
+  }
   function buildNav() {
-    const side = $("#sideNav");
-    side.innerHTML = NAV_GROUPS.map((group) => `
-      <div class="nav-group-label">${esc(group.label)}</div>
-      ${group.items.map((key) => {
-        const count = key === "tasks" ? state.tasks.filter((t) => t.status !== "erledigt").length : 0;
-        return `<a class="side-link" data-nav="${key}" href="#/${key}">${icon(NAV_ICONS[key])}<span>${esc(ROUTES[key].title)}</span>${count ? `<span class="nav-count">${count}</span>` : ""}</a>`;
-      }).join("")}
-    `).join("");
-
-    const bottom = $("#bottomNav");
-    bottom.innerHTML = BOTTOM_NAV.map((key) => {
-      const count = key === "tasks" ? state.tasks.filter((t) => t.status !== "erledigt").length : 0;
-      const label = key === "home" ? "Home" : key === "status" ? "Status" : key === "loop" ? "Loop" : key === "settings" ? "Einstellungen" : "Mehr";
-      return `<a class="bottom-link" data-nav="${key}" href="#/${key}">${icon(NAV_ICONS[key])}<span>${label}</span>${count ? `<span class="nav-count">${count}</span>` : ""}</a>`;
-    }).join("");
+    $("#bottomNav").innerHTML = BOTTOM_NAV.map((item) => `
+      <a class="nav-item" data-nav="${item.route}" href="#/${item.route}">
+        ${icon(item.icon)}
+        <span>${item.label}</span>
+      </a>`).join("");
   }
-
-  function updateNavActive(route) {
-    const activeKey = BOTTOM_NAV.includes(route) ? route : "more";
-    $$("[data-nav]").forEach((el) => {
-      el.classList.toggle("active", el.dataset.nav === route || (el.classList.contains("bottom-link") && el.dataset.nav === activeKey));
-    });
+  function updateNav(route) {
+    const active = activeNav(route);
+    $$("[data-nav]").forEach((el) => el.classList.toggle("active", el.dataset.nav === active));
   }
-
   function renderRoute() {
     const route = getRoute();
     const meta = ROUTES[route];
-    $("#pageTitle").textContent = meta.title;
-    $("#pageEyebrow").textContent = meta.eyebrow;
-    document.title = `NEXUS CLAW · ${meta.title}`;
+    document.title = `NEXUS V7 · ${meta.title}`;
     document.body.dataset.route = route;
-    const content = $("#view");
-    content.innerHTML = `<div class="view-enter">${RENDERERS[route]()}</div>`;
-    updateNavActive(route);
-    updateOnlinePill();
-    updateClock();
-    ui.lastRoute = route;
-
-    if (route === "terminal") {
-      const input = $("#termInput");
-      if (input && window.innerWidth > 820) input.focus();
-      scrollTerminal();
-    }
-    if (route === "chat") requestAnimationFrame(scrollChat);
-    window.scrollTo({ top: 0, behavior: "auto" });
+    const renderers = {
+      home: renderHome, agents: renderAgents, agent: renderAgentDetail, mutation: renderMutation,
+      models: renderModels, loop: renderLoop, projects: renderProjects, tasks: renderTasks,
+      terminal: renderTerminal, audit: renderAudit, status: renderStatus, settings: renderSettings,
+      menu: renderMenu
+    };
+    $("#view").innerHTML = `<div class="view-enter">${(renderers[route] || renderHome)()}</div>`;
+    updateNav(route);
   }
 
-  function updateClock() {
-    const el = $("#topClock");
-    if (el) el.textContent = clockNow();
-  }
-
-  function updateOnlinePill() {
-    const pill = $("#onlinePill");
-    const label = $("#onlineLabel");
-    if (!pill || !label) return;
-    const online = navigator.onLine;
-    const running = state.loop.running && !state.loop.paused;
-    label.textContent = running ? "RUNNING" : online ? "ONLINE" : "OFFLINE";
-    pill.classList.toggle("err", !online);
-    pill.classList.toggle("warn", online && running);
-  }
-
-  function pageHead(title, sub, actions = "") {
-    return `<div class="page-head"><div><h2>${esc(title)}</h2><p>${esc(sub)}</p></div>${actions ? `<div class="head-actions">${actions}</div>` : ""}</div>`;
-  }
-
-  /* ---------- Renderers ---------- */
-  const RENDERERS = {
-    home: renderHome, status: renderStatus, models: renderModels, loop: renderLoop, projects: renderProjects,
-    more: renderMore, agents: renderAgents, rooms: renderRooms, skills: renderSkills,
-    library: renderLibrary, tasks: renderTasks, chat: renderChat, notes: renderNotes,
-    settings: renderSettings, audit: renderAudit, terminal: renderTerminal
-  };
-
-  /* ============ HOME ============ */
-  function renderHome() {
-    const m = ui.metrics;
-    const connected = state.connection.status === "ok";
-    return `
-      <div class="overview-layout">
-        <div class="overview-main">
-          <div class="home-label"><span>System Status</span><span class="home-label-note">${connected ? "Ollama verbunden" : "Demo-Daten"}</span></div>
-          <div class="metric-grid">
-            ${metricCard("Speicher", "database", m.storage.toFixed(1) + " GB", "frei", "#8dff48", "demo")}
-            ${metricCard("RAM", "memory", m.ram.toFixed(1) + " GB", "verfügbar", "#8fd8ff", "demo")}
-            ${metricCard("Netzwerk", "wifi", "Wi-Fi", "verbunden", "#d8ecff", "live")}
-            ${metricCard("Batterie", "battery", Math.round(m.battery) + "%", "geladen", "#8dff48", "demo")}
-          </div>
-
-          <div class="home-label home-label-accent"><span><span class="play-tri"></span>Open a Session</span><a class="link desktop-only" href="#/agents">Alle Agenten ${icon("arrow-right")}</a></div>
-          <div class="session-tile-grid">
-            ${PROVIDERS.map((p) => `
-              <button class="session-tile" style="--accent:${p.accent}" data-action="launch" data-provider="${p.id}">
-                <span class="session-tile-icon">${icon(p.icon)}</span>
-                <span class="session-tile-name">${esc(p.name)}</span>
-              </button>`).join("")}
-          </div>
-
-          <div class="home-link-list">
-            <button class="home-link-row" data-action="open-terminal">
-              <span class="home-link-icon" style="--accent:#8dff48">${icon("terminal")}</span>
-              <span class="home-link-copy"><strong>Bare Terminal</strong><small>Direkter Terminal-Zugriff</small></span>
-              <span class="chev">${icon("chevron")}</span>
-            </button>
-            <button class="home-link-row" data-action="open-library">
-              <span class="home-link-icon" style="--accent:#8dff48">${icon("folder")}</span>
-              <span class="home-link-copy"><strong>Browse your files</strong><small>Nur lesen (Read Only)</small></span>
-              <span class="chev">${icon("chevron")}</span>
-            </button>
-          </div>
-
-          <div class="home-label session-label"><span>Active Sessions</span><span class="badge green">${state.sessions.length} aktiv</span></div>
-          <div class="session-panel">
-            <div class="session-list">
-              ${state.sessions.map((s) => `
-                <div class="session-row">
-                  <span class="session-dot ${s.status === "Läuft" ? "" : "idle"}"></span>
-                  <span class="session-name">${esc(s.name)}</span>
-                  <button class="manage-btn" data-action="session-manage" data-session="${s.id}">Manage</button>
-                </div>`).join("") || `
-                <div class="empty">${icon("radio")}<strong>Keine aktiven Sitzungen</strong><p>Starte einen Agenten über die Karten oben.</p></div>`}
-            </div>
-          </div>
-
-          <div class="home-label"><span>Offene Aufgaben</span><a class="link" href="#/tasks">Alle ${icon("arrow-right")}</a></div>
-          <div class="panel pad home-task-panel">
-            ${state.tasks.slice(0, 4).map((t) => `
-              <div class="session-row">
-                <span class="session-dot ${t.status === "erledigt" ? "idle" : ""}"></span>
-                <span class="session-name ${t.status === "erledigt" ? "muted" : ""}">${esc(t.title)}</span>
-                <span class="badge ${PRIORITY[t.priority].cls}">${esc(t.priority)}</span>
-                <span class="session-meta">${esc(agentById(t.agent)?.name || "–")}</span>
-              </div>`).join("")}
-          </div>
-        </div>
-
-        <aside class="overview-aside home-aside">
-          ${loopPanel()}
-          ${focusTaskPanel()}
-          <div class="panel">
-            <div class="panel-head">
-              <div class="panel-title">${icon("activity")} Audit-Log</div>
-              <a class="badge ${connected ? "green" : "cyan"}" href="#/audit">Live</a>
-            </div>
-            <div class="panel-body" style="padding-top:8px;padding-bottom:8px">
-              <div class="audit-list">${state.audit.slice(0, 6).map(auditRow).join("")}</div>
-            </div>
-          </div>
-        </aside>
-      </div>`;
-  }
-
-  function metricCard(label, ic, value, sub, color, kind) {
-    return `
-      <div class="metric" style="--metric-color:${color}">
-        <div class="metric-label"><span>${esc(label)}</span><span class="metric-kind ${kind === "live" ? "live" : ""}">${kind === "live" ? "Live" : "Demo"}</span></div>
-        <div class="metric-icon">${icon(ic)}</div>
-        <div class="metric-value" data-metric-value="${esc(label)}">${esc(value)}</div>
-        <div class="metric-sub">${esc(sub)}</div>
-      </div>`;
-  }
-
-  function loopPanel() {
-    const loop = state.loop;
-    const pct = Math.max(0, Math.min(100, loop.progress));
-    const C = 2 * Math.PI * 74;
-    const offset = C * (1 - pct / 100);
-    return `
-      <div class="panel loop-panel">
-        <div class="between">
-          <div class="panel-title">${icon("loop")} Entwicklungs-Loop</div>
-          <span class="badge ${loop.running ? (loop.paused ? "orange" : "green") : ""}">${loop.running ? (loop.paused ? "Pausiert" : "Läuft") : "Bereit"}</span>
-        </div>
-        <div class="loop-visual">
-          <svg class="ring" viewBox="0 0 176 176" aria-label="Loop-Fortschritt ${pct}%">
-            <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8dff48"/><stop offset="1" stop-color="#31d8ff"/></linearGradient></defs>
-            <circle class="track" cx="88" cy="88" r="74"/>
-            <circle class="progress" id="loopRingProgress" cx="88" cy="88" r="74" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/>
-          </svg>
-          <div class="ring-center">
-            <span class="cycle" id="loopCycle">Zyklus ${loop.cycle} / ${loop.total}</span>
-            <span class="pct" id="loopPct">${Math.round(pct)} %</span>
-            <span class="state" id="loopState">${loop.running ? (loop.paused ? "Pausiert" : "Simulation") : "Bereit"}</span>
-          </div>
-        </div>
-        <div class="loop-steps" id="loopSteps">
-          ${LOOP_PHASES.map((phase, i) => loopStep(phase, i, loop)).join("")}
-        </div>
-        <div class="loop-controls">
-          <button class="btn primary" data-action="loop-start">${icon("play")} Start</button>
-          <button class="btn" data-action="loop-pause">${icon("pause")} Pause</button>
-          <button class="btn danger" data-action="loop-stop">${icon("stop")} Stop</button>
-        </div>
-        <p class="field-hint" style="margin-top:9px">Simulation · keine echte Codeausführung. Der Loop speichert nur einen Steuerzustand.</p>
-      </div>`;
-  }
-
-  function loopStep(phase, i, loop) {
-    const phaseIndex = Math.min(LOOP_PHASES.length - 1, Math.floor((loop.progress / 100) * LOOP_PHASES.length));
-    const done = i < phaseIndex || loop.progress >= 100;
-    const active = i === phaseIndex && loop.running && !loop.paused && loop.progress < 100;
-    return `<div class="loop-step ${done ? "done" : active ? "active" : ""}">
-      <span class="bullet">${done ? icon("check") : ""}</span>
-      <span>${esc(phase)}</span>
-      <span class="step-time">${done ? "✓" : active ? "läuft" : "–"}</span>
+  /* ---------------- shared components ---------------- */
+  function screenHead(iconName, title, { tone = "", action = "", back = false } = {}) {
+    return `<div class="screen-head ${tone}">
+      ${back ? `<button class="hud-btn back-btn" data-action="back" aria-label="Zurück">${icon("back")}</button>` : `<span class="head-icon">${icon(iconName)}</span>`}
+      <h1>${esc(title)}</h1>
+      ${action ? `<div class="head-action">${action}</div>` : ""}
     </div>`;
   }
-
-  function focusTaskPanel() {
-    const loop = state.loop;
-    const liveIndex = Math.max(0, Math.min(loop.steps.length - 1, Math.floor((loop.progress / 100) * loop.steps.length)));
-    return `
-      <div class="panel task-focus">
-        <div class="between"><div class="panel-title">${icon("clipboard")} Aktuelle Aufgabe</div><span class="badge orange">A3 ${esc(loop.owner)}</span></div>
-        <div class="task-title">${esc(loop.task)}</div>
-        <div class="task-meta"><span class="badge">Schritte</span><span class="muted small">${liveIndex + 1} / ${loop.steps.length}</span></div>
-        <div class="focus-steps">
-          ${loop.steps.map((step, i) => {
-            const done = i < liveIndex || loop.progress >= 100;
-            const live = i === liveIndex && loop.running && !loop.paused && loop.progress < 100;
-            return `<div class="focus-step ${done ? "done" : live ? "live" : ""}">
-              <span class="n">${done ? "✓" : i + 1}</span><span>${esc(step)}</span>
-              <span class="status">${done ? "Fertig" : live ? "Läuft" : "Wartet"}</span>
-            </div>`;
-          }).join("")}
-        </div>
-      </div>`;
-  }
-
-  function auditRow(a) {
-    const style = AUDIT_STYLE[a.type] || AUDIT_STYLE.system;
-    return `<div class="audit-row">
-      <span class="audit-time">${esc(a.time)}</span>
-      <span class="audit-icon" style="--evt:${style.color}">${icon(style.icon)}</span>
-      <span class="audit-text"><b>${esc(a.actor)}</b> · ${esc(a.text)}</span>
+  function panelHead(iconName, title, { tone = "", right = "" } = {}) {
+    return `<div class="panel-head ${tone}">
+      <span class="p-icon">${icon(iconName)}</span>
+      <span>${esc(title)}</span>
+      ${right ? `<span class="head-right">${right}</span>` : ""}
     </div>`;
   }
-
-  /* ============ STATUS ============ */
-  function renderStatus() {
-    const m = ui.metrics;
-    const connected = state.connection.status === "ok";
-    const openTasks = state.tasks.filter((t) => t.status !== "erledigt").length;
-    return `
-      ${pageHead("System Status", "Live-Messwerte und Demo-Kennzahlen sind getrennt markiert. Alle Werte bleiben lokal.", `
-        <button class="btn ghost sm" data-action="test-connection">${icon("refresh")} Verbindung testen</button>
-        <a class="btn primary sm" href="#/models">${icon("cpu")} Modellzentrale</a>
-      `)}
-      <div class="metric-grid status-metrics">
-        ${metricCard("Speicher", "database", m.storage.toFixed(1) + " GB", "frei · Demo", "#8dff48", "demo")}
-        ${metricCard("RAM", "memory", m.ram.toFixed(1) + " GB", "verfügbar · Demo", "#8fd8ff", "demo")}
-        ${metricCard("Netzwerk", "wifi", "Wi-Fi", "verbunden · Live", "#d8ecff", "live")}
-        ${metricCard("Batterie", "battery", Math.round(m.battery) + "%", "geladen · Demo", "#8dff48", "demo")}
+  function gaugeCard(label, value, pct, color, spark = true) {
+    return `<div class="gauge-card">
+      <div class="gauge" style="--p:${Math.max(0, Math.min(100, pct))};--c:${color}">
+        <div class="gauge-inner"><span class="gauge-label">${esc(label)}</span><span class="gauge-value">${esc(value)}</span></div>
       </div>
-      <div class="two-col" style="margin-top:18px">
-        <div class="stack">
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("radio")} Verbindungen</div><span class="badge ${connected ? "green" : "orange"}">${connected ? "Ollama OK" : "Demo-Modus"}</span></div>
-            <div class="panel-body">
-              <div class="session-row"><span class="session-dot"></span><span class="session-name">Frontend · NEXUS CLAW</span><span class="badge green">Bereit</span></div>
-              <div class="session-row"><span class="session-dot ${connected ? "" : "idle"}"></span><span class="session-name">Ollama · ${esc(cleanUrl(state.settings.ollamaUrl))}</span><span class="badge ${connected ? "green" : "orange"}">${connected ? "Verbunden" : "Nicht geprüft"}</span></div>
-              <div class="session-row"><span class="session-dot ${state.loop.running ? "" : "idle"}"></span><span class="session-name">Entwicklungs-Loop</span><span class="badge ${state.loop.running ? "green" : ""}">${state.loop.running ? (state.loop.paused ? "Pausiert" : "Läuft") : "Bereit"}</span></div>
-              <div class="session-row"><span class="session-dot"></span><span class="session-name">Lokale Persistenz</span><span class="badge cyan">localStorage</span></div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("activity")} Auslastung</div><span class="badge">Demo</span></div>
-            <div class="panel-body">
-              <div class="status-meter"><div class="between"><span class="small">Speicher</span><span class="mono small">${m.storage.toFixed(1)} GB frei</span></div><div class="metric-bar"><i style="width:62%;background:var(--green)"></i></div></div>
-              <div class="status-meter"><div class="between"><span class="small">RAM</span><span class="mono small">${m.ram.toFixed(1)} GB / 8 GB</span></div><div class="metric-bar"><i style="width:25%;background:var(--cyan)"></i></div></div>
-              <div class="status-meter"><div class="between"><span class="small">Batterie</span><span class="mono small">${Math.round(m.battery)}%</span></div><div class="metric-bar"><i style="width:${Math.round(m.battery)}%;background:var(--green)"></i></div></div>
-              <div class="status-meter"><div class="between"><span class="small">Loop-Zyklus</span><span class="mono small">${state.loop.cycle} / ${state.loop.total}</span></div><div class="metric-bar"><i style="width:${state.loop.progress}%;background:var(--cyan)"></i></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="stack">
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("users")} Aktive Sitzungen</div><span class="badge green">${state.sessions.length}</span></div>
-            <div class="panel-body">
-              ${state.sessions.map((s) => `
-                <div class="session-row">
-                  <span class="session-dot ${s.status === "Läuft" ? "" : "idle"}"></span>
-                  <span class="session-name">${esc(s.name)}</span>
-                  <button class="manage-btn" data-action="session-manage" data-session="${s.id}">Manage</button>
-                </div>`).join("") || `<p class="field-hint">Keine Sitzungen aktiv.</p>`}
-            </div>
-          </div>
-          <div class="panel pad">
-            <div class="between"><span class="panel-title">${icon("check-square")} Aufgaben</span><span class="badge orange">${openTasks} offen</span></div>
-            <p class="field-hint" style="margin-top:8px">Aufgaben werden lokal gespeichert und bei jeder Änderung im Audit-Protokoll erfasst.</p>
-            <a class="btn ghost sm block" style="margin-top:10px" href="#/tasks">Aufgaben öffnen ${icon("arrow-right")}</a>
-          </div>
-          <div class="panel pad">
-            <div class="between"><span class="panel-title">${icon("activity")} Audit</span><span class="badge green"><span class="dot"></span> Live</span></div>
-            <p class="field-hint" style="margin-top:8px">${state.audit.length} lokale Ereignisse protokolliert.</p>
-            <a class="btn ghost sm block" style="margin-top:10px" href="#/audit">Protokoll öffnen ${icon("arrow-right")}</a>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  /* ============ MODELS ============ */
-  function renderModels() {
-    const conn = state.connection;
-    const connected = conn.status === "ok";
-    const models = modelChoices();
-    const installed = conn.models && conn.models.length ? conn.models : DEMO_MODELS;
-    const activeId = MODEL_SEED.find((m) => m.model === state.settings.model)?.id;
-    return `
-      ${pageHead("KI-Modelle (Routing)", "Provider und lokale Modelle verbinden. Die Verbindung wird direkt über die Ollama-HTTP-API geprüft.", `
-        <button class="btn ghost sm" data-action="test-connection">${icon("refresh")} Verbindung testen</button>
-        <button class="btn primary sm" data-action="new-model">${icon("plus")} Neues Modell</button>
-      `)}
-      <div class="two-col">
-        <div>
-          <div class="panel">
-            <div class="panel-head">
-              <div class="panel-title">${icon("cpu")} Modelle & Provider</div>
-              <span class="badge ${connected ? "green" : "orange"}">${connected ? "Ollama verbunden" : "Demo-Routing"}</span>
-            </div>
-            <div class="panel-body">
-              <div class="model-list">
-                ${MODEL_SEED.map((m) => modelCard(m, activeId === m.id)).join("")}
-                ${(state.customModels || []).map((m) => modelCard({ id: m.id, name: m.name, sub: m.kind || "Benutzerdefiniert", icon: "cpu", accent: "#8dff48", model: m.name, tags: [m.kind || "Custom"], status: "Bereit" }, state.settings.model === m.name)).join("")}
-              </div>
-            </div>
-          </div>
-
-          <div class="section-head"><h3>Routing-Regeln</h3><span class="badge">Prototyp</span></div>
-          <div class="panel">
-            <div class="panel-body">
-              <div class="stack">
-                ${routeRule("Strategie & Planung", "Ollama · qwen2.5-coder", "Architektur, Zerlegung", "#8dff48")}
-                ${routeRule("Code & Refactoring", "Codex / OpenCode", "Änderungen, Tests", "#31d8ff")}
-                ${routeRule("Sicherheitsprüfung", "DeepSeek · Reasoning", "Risiko, Freigaben", "#ff5566")}
-                ${routeRule("Recherche", "mcp-duckgo Skill", "Quellen, Vergleiche", "#b379ff")}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="stack">
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("radio")} Ollama-Verbindung</div><span class="badge ${connected ? "green" : conn.status === "error" ? "red" : ""}">${connected ? "OK" : conn.status === "error" ? "Fehler" : "Ungeprüft"}</span></div>
-            <div class="panel-body">
-              <div class="conn-row ${conn.status === "error" ? "err" : ""}">
-                ${icon(connected ? "check" : conn.status === "error" ? "alert" : "radio")}
-                <span>${connected ? `Verbunden · ${installed.length} Modelle gemeldet` : conn.status === "error" ? "Nicht erreichbar – Demo-Modus aktiv" : "Verbindung noch nicht geprüft"}</span>
-              </div>
-              <div class="field" style="margin-top:13px">
-                <label for="ollamaUrl">Ollama-Adresse</label>
-                <input class="input mono" id="ollamaUrl" data-setting="ollamaUrl" value="${esc(state.settings.ollamaUrl)}" spellcheck="false" />
-              </div>
-              <div class="field" style="margin-top:11px">
-                <label for="defaultModelSelect">Standardmodell</label>
-                <select class="select" id="defaultModelSelect" data-setting="model">
-                  ${models.map((m) => `<option value="${esc(m.name)}" ${m.name === state.settings.model ? "selected" : ""}>${esc(m.name)}${m.provider ? ` · ${esc(m.provider)}` : ""}</option>`).join("")}
-                </select>
-              </div>
-              <div class="row" style="margin-top:12px">
-                <button class="btn primary grow" data-action="test-connection">${icon("wifi")} Verbindung prüfen</button>
-                <button class="btn ghost" data-action="open-settings" aria-label="Einstellungen">${icon("settings")}</button>
-              </div>
-              <p class="field-hint" style="margin-top:9px">Bei Browser-Zugriff auf einen anderen Host: <code>OLLAMA_ORIGINS=* ollama serve</code>.</p>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("database")} Lokale Modelle</div><span class="badge">${installed.length}</span></div>
-            <div class="panel-body">
-              <div class="ollama-models">
-                ${installed.map((m) => `<div class="ollama-model ${m.installed !== false ? "installed" : ""}">${icon(m.installed !== false ? "check" : "download")}<span>${esc(m.name)}</span><span class="size">${esc(m.size || "—")}</span></div>`).join("")}
-              </div>
-              <button class="btn block ghost sm" style="margin-top:10px" data-action="test-connection">${icon("refresh")} Modellliste aktualisieren</button>
-            </div>
-          </div>
-
-          <div class="panel pad">
-            <div class="badge orange">Sicherheitsgrenze</div>
-            <p class="field-hint" style="margin-top:8px">Modellaufrufe sind im Prototyp auf Textgenerierung beschränkt. Codeausführung und Schreibzugriff bleiben deaktiviert.</p>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function modelCard(m, active) {
-    return `<div class="model-card ${active ? "active" : ""}" style="--accent:${m.accent}" data-action="model-select" data-model-id="${m.id}" data-model-name="${esc(m.model)}" role="button" tabindex="0">
-      <span class="model-icon">${icon(m.icon)}</span>
-      <span class="model-copy">
-        <strong>${esc(m.name)} ${active ? '<span class="badge green">Standard</span>' : ""}</strong>
-        <span class="model-sub">${esc(m.sub)}</span>
-        <span class="model-tags">${m.tags.map((t) => `<span class="badge">${esc(t)}</span>`).join("")}</span>
-      </span>
-      <span class="model-status">${icon("check")} ${esc(m.status)}</span>
-      <span class="chev">${icon("chevron")}</span>
+      ${spark ? sparkline(color) : ""}
     </div>`;
   }
-
-  function routeRule(task, model, note, accent) {
-    return `<div class="session-row">
-      <span class="session-dot" style="background:${accent};box-shadow:0 0 9px ${accent}"></span>
-      <div class="grow"><div class="small" style="font-weight:600">${esc(task)}</div><div class="small muted">${esc(note)}</div></div>
-      <span class="badge">${esc(model)}</span>
+  function sparkline(color) {
+    const points = [11, 8, 12, 6, 10, 13, 7, 9, 14, 8, 11, 5, 10, 13, 8, 6, 12, 9, 14, 10, 7, 12, 8, 5];
+    return `<svg class="spark" viewBox="0 0 100 18" preserveAspectRatio="none" style="color:${color}" aria-hidden="true">
+      <polyline points="${points.map((v, i) => `${(i / (points.length - 1)) * 100},${18 - v}`).join(" ")}"/>
+    </svg>`;
+  }
+  function gaugeGrid(monitor = false) {
+    const m = state.metrics;
+    return `<div class="${monitor ? "monitor-grid" : "gauge-grid"}">
+      ${gaugeCard("CPU", `${Math.round(m.cpu)}%`, m.cpu, "#21d9ff")}
+      ${gaugeCard("RAM", `${m.ram.toFixed(1)}/8`, (m.ram / 8) * 100, "#a94dff")}
+      ${gaugeCard("Speicher", `${m.storage.toFixed(1)}/64`, (m.storage / 64) * 100, "#1785ff")}
+      ${gaugeCard("Akku", `${Math.round(m.battery)}%`, m.battery, "#2cff8f")}
     </div>`;
   }
-
-  function modelChoices() {
-    const fromConn = (state.connection.models || []).map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
-    const known = DEMO_MODELS.map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
-    const custom = (state.customModels || []).map((m) => ({ id: m.name, name: m.name, provider: m.kind || "Custom" }));
-    const extras = MODEL_SEED.filter((m) => !m.model.includes(":")).map((m) => ({ id: m.model, name: m.model, provider: m.name }));
-    const seen = new Set();
-    return [...fromConn, ...known, ...custom, ...extras].filter((m) => {
-      if (!m.name || seen.has(m.name)) return false;
-      seen.add(m.name);
-      return true;
-    });
+  function phaseIcon(index) {
+    return ["plan", "loop", "shield", "skills", "flask", "wrench", "brain", "bolt"][index % 8];
   }
-
-  /* ============ LOOP ============ */
-  function renderLoop() {
-    const loop = state.loop;
-    const model = state.settings.model || "qwen2.5-coder:1.5b";
-    return `
-      <div class="loop-screen">
-        <div class="home-label"><span>Model Routing</span><a class="link" href="#/models">Modelle ${icon("arrow-right")}</a></div>
-        <div class="routing-grid">
-          <button class="routing-card" data-action="model-select" data-model-id="ollama" data-model-name="${esc(model)}" style="--accent:#8dff48">
-            <span class="routing-icon">${icon("cpu")}</span>
-            <span class="routing-copy"><strong>Ollama</strong><small>${esc(model)}</small></span>
-            <span class="routing-signal"></span>
-          </button>
-          <button class="routing-card" data-action="open-chat" style="--accent:#b379ff">
-            <span class="routing-icon">${icon("brain")}</span>
-            <span class="routing-copy"><strong>DeepSeek</strong><small>Reasoning</small></span>
-            <span class="routing-signal"></span>
-          </button>
-          <button class="routing-card" data-action="open-more" style="--accent:#8fbcff">
-            <span class="routing-icon">${icon("github")}</span>
-            <span class="routing-copy"><strong>Copilot</strong><small>Code Assist</small></span>
-            <span class="routing-signal"></span>
-          </button>
-        </div>
-
-        <div class="console-shell">
-          <div class="console-head">
-            <span class="console-title">${icon("terminal")} nexus@claw:~/NeinGames</span>
-            <span class="badge ${loop.running ? (loop.paused ? "orange" : "green") : ""}" id="loopConsoleBadge"><span class="dot"></span> ${loop.running ? (loop.paused ? "Pausiert" : "Loop läuft") : "Autonomous Loop"}</span>
-            <button class="icon-btn console-menu" data-action="loop-menu" aria-label="Loop-Menü">${icon("kebab")}</button>
-          </div>
-          <div class="console-body">
-            <div class="loop-log" id="loopLog">${loopLogStages(loop)}</div>
-            <div id="loopBanner">${loopBanner(loop)}</div>
-            <div class="last-output">
-              <div class="last-output-head">Letzte Ausgabe</div>
-              <div class="last-output-line"><span class="out-check">${icon("check")}</span> <span>Commit: <b>feat: add game logic and test case</b></span></div>
-              <div class="last-output-line"><span class="out-check">${icon("check")}</span> <span>Branch: <b>nexus-dev</b> · Tests: <b>10/10</b></span></div>
-              <div class="last-output-line"><span class="out-check">${icon("check")}</span> <span>Audit: <b>${state.audit.length}</b> Ereignisse · Simulation</span></div>
-            </div>
-            <div class="console-prompt">
-              <span class="prompt-user">nexus@claw</span><span class="prompt-path">:~/NeinGames</span><span class="prompt-caret"></span>
-            </div>
-          </div>
-          <div class="keypad" aria-label="Terminal-Tastatur">
-            <div class="key-row">${["ESC", "/", "-", "TAB", "CTRL", "↑"].map((k) => loopKey(k)).join("")}</div>
-            <div class="key-row">${["TAB", "CTRL", "ALT", "ALT", "←", "↓", "→", "ENTER"].map((k) => loopKey(k, k === "ENTER" ? "enter" : "")).join("")}</div>
-          </div>
-        </div>
-        <p class="field-hint loop-hint">Simulation ohne echte Codeausführung. Start, Pause und Stop über das Menü oben rechts.</p>
+  function dashboardPhases() {
+    const done = Math.min(DASH_PHASES.length, state.loop.completed);
+    return `<div class="loop-phases">${DASH_PHASES.map((name, i) => `
+      <div class="phase ${i < done ? "done" : i === done && state.loop.running ? "active" : ""}">
+        <span class="phase-icon">${icon(phaseIcon(i))}</span>
+        <span class="phase-label">${name}</span>
+      </div>`).join("")}</div>`;
+  }
+  function loopRingSvg(progress, size = 150) {
+    const r = 63;
+    const c = 2 * Math.PI * r;
+    const offset = c * (1 - Math.max(0, Math.min(100, progress)) / 100);
+    return `<svg class="loop-ring" viewBox="0 0 150 150" width="${size}" height="${size}" aria-hidden="true">
+      <defs><linearGradient id="loopGradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2cff8f"/><stop offset=".38" stop-color="#21d9ff"/><stop offset="1" stop-color="#167dff"/>
+      </linearGradient></defs>
+      <circle class="track" cx="75" cy="75" r="${r}"/>
+      <circle class="prog" id="loopRingProg" cx="75" cy="75" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/>
+    </svg>`;
+  }
+  function loopPhaseList() {
+    return LOOP_PHASES.map((name, i) => {
+      const done = i < state.loop.completed;
+      const current = state.loop.running && i === state.loop.completed;
+      return `<div class="loop-phase-item ${done ? "done" : current ? "current" : "pending"}">
+        <span class="check">${done ? icon("check") : ""}</span><span>${name}</span>
       </div>`;
-  }
-
-  function loopStageStatus(loop, index) {
-    if (!loop.running && loop.progress <= 0) return "pending";
-    const scaled = (loop.progress / 100) * LOOP_LOG_STAGES.length;
-    if (scaled >= index + 1) return "done";
-    if (scaled >= index) return "active";
-    return "pending";
-  }
-
-  function loopLogStages(loop) {
-    return LOOP_LOG_STAGES.map((stage, i) => {
-      const status = loopStageStatus(loop, i);
-      return `
-        <div class="log-stage ${status}">
-          <div class="log-stage-head">
-            <span class="log-stage-title">${i + 1}. ${esc(stage.title)}</span>
-            <span class="log-stage-state">${status === "done" ? `<span class="stage-check">${icon("check")}</span>` : status === "active" ? `<span class="stage-live">läuft</span>` : `<span class="stage-pending">—</span>`}</span>
-            <span class="log-time">${esc(stage.time)}</span>
-          </div>
-          <div class="log-lines">
-            ${stage.lines.map((line) => `
-              <div class="log-line">
-                <span class="log-tag">[${esc(line.tag)}]</span>
-                <span class="log-text">${esc(line.text)}</span>
-                ${line.end ? `<span class="log-end ${line.tone === "green" ? "ok" : ""}">${esc(line.end)}</span>` : ""}
-              </div>`).join("")}
-          </div>
-        </div>`;
     }).join("");
   }
-
-  function loopBanner(loop) {
-    if (loop.progress >= 100) {
-      return `<div class="loop-success">
-        <span class="success-check">${icon("check")}</span>
-        <span class="success-copy"><strong>Zyklus erfolgreich abgeschlossen!</strong><small>Simulation · keine echten Änderungen</small></span>
-        <span class="success-cycle">${icon("refresh")} Zyklus ${loop.cycle}/${loop.total}</span>
-      </div>`;
-    }
-    return `<div class="loop-progress">
-      <div class="between"><span>Zyklus ${loop.cycle} / ${loop.total}</span><span>${Math.round(loop.progress)}%</span></div>
-      <div class="loop-progress-bar"><i style="width:${loop.progress}%"></i></div>
+  function controlButtons() {
+    return `<div class="control-row">
+      <button class="control-btn start" data-action="loop-start">${icon("play")} Start</button>
+      <button class="control-btn pause" data-action="loop-pause">${icon("pause")} Pause</button>
+      <button class="control-btn stop" data-action="loop-stop">${icon("stop")} Stop</button>
+    </div>`;
+  }
+  function progressRow(progress) {
+    return `<div class="cycle-progress-row">
+      <div class="cycle-bar"><i id="dashLoopBar" style="width:${progress}%"></i></div>
+      <span class="cycle-pct" id="dashLoopPct">${Math.round(progress)}%</span>
     </div>`;
   }
 
-  function loopKey(label, extra = "") {
-    const action = label === "ENTER" ? "loop-menu" : "term-key";
-    return `<button class="key ${extra}" data-action="${action}" data-key="${esc(label)}">${esc(label)}</button>`;
-  }
-
-  /* ============ PROJECTS ============ */
-  function renderProjects() {
-    const filter = state.ui.projectFilter;
-    const counts = {
-      alle: state.projects.length,
-      aktiv: state.projects.filter((p) => p.status === "Aktiv" || p.status === "In Arbeit").length,
-      archiv: state.projects.filter((p) => p.status === "Archiv").length
-    };
-    const list = state.projects.filter((p) => filter === "alle" ? true : filter === "archiv" ? p.status === "Archiv" : p.status === "Aktiv" || p.status === "In Arbeit");
-    const statusBadge = (s) => s === "Aktiv" ? "green" : s === "In Arbeit" ? "orange" : s === "Pause" ? "purple" : "";
+  /* ---------------- dashboard ---------------- */
+  function renderHome() {
+    const loop = state.loop;
+    const quick = [
+      { action: "open-task", icon: "plan", label: "Neuer Plan", color: "#2bd7ff" },
+      { action: "open-project", icon: "folder", label: "Neues Projekt", color: "#1d8cff" },
+      { action: "open-file", icon: "file", label: "Datei öffnen", color: "#ffb52e" },
+      { action: "open-terminal", icon: "terminal", label: "Terminal", color: "#31d5ff" },
+      { action: "test-connection", icon: "agent", label: "Ollama testen", color: "#a96bff" },
+      { action: "system-check", icon: "gear", label: "Systemcheck", color: "#46a8ff" }
+    ];
     return `
-      ${pageHead("Projekte", "Arbeitsbereiche, Meilensteine und archivierte Experimente.", `<button class="btn primary sm" data-action="new-project">${icon("plus")} Neues Projekt</button>`)}
-      <div class="project-filters">
-        ${[["alle", "Alle", counts.alle], ["aktiv", "Aktiv", counts.aktiv], ["archiv", "Archiv", counts.archiv]].map(([key, label, count]) => `
-          <button class="chip ${filter === key ? "active" : ""}" data-action="project-filter" data-value="${key}">${label} <span class="count">${count}</span></button>
-        `).join("")}
-      </div>
-      <div class="project-grid">
-        ${list.map((p) => `
-          <button class="project-card" style="--accent:${p.accent}" data-action="project-open" data-project="${p.id}">
-            <span class="project-icon">${icon(p.icon)}</span>
-            <span class="project-copy">
-              <strong>${esc(p.name)}</strong>
-              <small>${esc(p.type)} · ${esc(p.language)}</small>
-              <span class="project-meta">
-                <span class="badge ${statusBadge(p.status)}">${esc(p.status)}</span>
-                <span class="small muted">Geändert: ${esc(formatDate(p.updated))}</span>
-              </span>
-              <span class="project-progress"><i style="width:${p.progress}%"></i></span>
-              <span class="project-foot"><span>${p.progress}% Fortschritt</span><span>${icon("chevron")}</span></span>
-            </span>
-          </button>`).join("")}
-      </div>
-      <div class="section-head"><h3>Projektübersicht</h3><span class="badge">${list.length} Einträge</span></div>
-      <div class="panel pad">
-        <table class="file-table">
-          <thead><tr><th>Projekt</th><th>Status</th><th>Typ</th><th>Zuletzt</th><th></th></tr></thead>
-          <tbody>
-            ${list.map((p) => `<tr>
-              <td><span class="file-name">${icon(p.icon)} ${esc(p.name)}</span></td>
-              <td><span class="badge ${statusBadge(p.status)}">${esc(p.status)}</span></td>
-              <td><span class="file-type">${esc(p.type)}</span></td>
-              <td><span class="file-size">${esc(formatDate(p.updated))}</span></td>
-              <td><button class="icon-btn sm" data-action="project-open" data-project="${p.id}" aria-label="Projekt öffnen">${icon("arrow-right")}</button></td>
-            </tr>`).join("")}
-          </tbody>
-        </table>
-      </div>`;
+      <section class="core-card">
+        <div class="core-hud" aria-hidden="true">
+          <span class="hud-ring r1"></span><span class="hud-ring r2"></span><span class="hud-ring r3"></span><span class="hud-ring r4"></span>
+          <span class="hud-spinner"></span><span class="hud-axis"></span><span class="hud-axis x"></span><span class="hud-core"></span>
+        </div>
+        <div class="core-copy">
+          <h1 class="core-title">NEXUS CORE</h1>
+          <div class="core-sub">EVOLUTION DURCH CHAOS</div>
+          <p class="core-quote">„Evolution ist kein Ziel,<br />sondern ein Prozess.“</p>
+          <span class="core-online"><span class="dot live"></span> System Online</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        ${panelHead("refresh", "Systemstatus", { right: `<span class="badge neutral">DEMO</span>` })}
+        <div class="panel-body">${gaugeGrid()}</div>
+      </section>
+
+      <section class="panel">
+        ${panelHead("bolt", "Schnellaktionen", { right: `<button class="icon-btn" data-action="system-check" aria-label="Systemcheck">${icon("refresh")}</button>` })}
+        <div class="panel-body">
+          <div class="quick-grid">
+            ${quick.map((q) => `<button class="quick-btn" data-action="${q.action}" style="--c:${q.color}">
+              <span class="qa-icon">${icon(q.icon)}</span><span>${q.label}</span>
+            </button>`).join("")}
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        ${panelHead("loop", "Lernschleife", { right: `Zyklus ${loop.cycle} / ${loop.total}` })}
+        <div class="panel-body">
+          <div id="dashPhases">${dashboardPhases()}</div>
+          <div id="dashProgress">${progressRow(loop.progress)}</div>
+          ${controlButtons()}
+        </div>
+      </section>`;
   }
 
-  /* ============ MORE ============ */
-  function renderMore() {
-    const entries = Object.keys(ROUTES).filter((key) => key !== "home" && key !== "more");
-    return `
-      ${pageHead("Mehr", "Alle Module der NEXUS CLAW Steuerzentrale an einem Ort.", `<button class="btn ghost sm" data-action="search-open">${icon("search")} Suche</button>`)}
-      <div class="panel more-banner">
-        <span class="brand-mark"><svg viewBox="0 0 48 48"><path d="M8 38C12 27 16 18 23 8c-1 9-1 18 2 27"/><path d="M17 40c4-11 8-20 15-30-1 10-1 19 2 29"/><path d="M27 40c4-9 7-16 13-24-1 8-1 15 1 22"/></svg></span>
-        <div class="grow"><h3>NEXUS CLAW V7.4.1</h3><p>Hybrid AI Office · lokaler Prototyp mit 8 Agentenprofilen und 8 Büroräumen.</p></div>
-        <span class="badge green"><span class="dot"></span> Online</span>
-      </div>
-      <div class="more-grid">
-        ${entries.map((key) => `
-          <a class="more-card" href="#/${key}">
-            <span class="launch-icon" style="--accent:#8dff48">${icon(NAV_ICONS[key])}</span>
-            <strong>${esc(ROUTES[key].title)}</strong>
-            <small>${esc(ROUTES[key].sub)}</small>
-          </a>`).join("")}
-      </div>`;
+  /* ---------------- agents ---------------- */
+  function agentCard(a) {
+    return `<button class="agent-card" data-action="agent-open" data-agent="${a.id}">
+      <img class="agent-photo" src="${a.portrait}" alt="${esc(a.name)}" loading="lazy" />
+      <span class="agent-info">
+        <span class="agent-name">${esc(a.name)}</span>
+        <span class="agent-code">${a.code}</span>
+        <span class="agent-role">${esc(a.role1)}<br />${esc(a.role2)}</span>
+        <span class="agent-bottom">
+          <span class="skill-orb">${icon("shield")}</span>
+          <span class="agent-bar"><i style="width:${Math.min(100, a.level * 10)}%"></i></span>
+          <span class="agent-lv">Lv. ${a.level}</span>
+        </span>
+      </span>
+    </button>`;
   }
-
-  /* ============ AGENTS ============ */
   function renderAgents() {
     return `
-      ${pageHead("KI-Agenten", "Profile organisieren Aufgaben und Rollen. Sie laufen nicht automatisch als acht unabhängige KI-Prozesse.", `
-        <button class="btn ghost sm" data-action="open-tasks">${icon("check-square")} Aufgaben</button>
-        <button class="btn primary sm" data-action="open-chat">${icon("chat")} Chat</button>
-      `)}
-      <div class="agent-grid">
-        ${AGENT_SEED.map((a) => {
-          const active = state.tasks.filter((t) => t.agent === a.id && t.status !== "erledigt").length;
-          return `<div class="agent-card" style="--accent:${a.accent}">
-            <div class="agent-top">
-              <span class="agent-ava">${esc(a.code)}</span>
-              <div class="grow"><strong>${esc(a.name)}</strong><div class="agent-role">${esc(a.role)}</div></div>
-              <span class="badge ${a.status === "Aktiv" ? "green" : ""}">${esc(a.status)}</span>
-            </div>
-            <p class="agent-desc">${esc(a.desc)}</p>
-            <div class="agent-stats"><span>${active} offene Aufgaben</span><span class="sep"></span><span>${esc(a.task)}</span></div>
-            <div class="agent-actions">
-              <button class="btn" data-action="chat-agent" data-agent="${a.id}">${icon("chat")} Chat</button>
-              <button class="btn ghost" data-action="assign-agent" data-agent="${a.id}">${icon("plus")} Aufgabe</button>
-            </div>
-          </div>`;
-        }).join("")}
-      </div>`;
+      ${screenHead("user", "Agenten Übersicht", { action: `<span class="badge green"><span class="dot live"></span> 8 Online</span>` })}
+      <div class="agent-grid">${AGENTS.map(agentCard).join("")}</div>`;
   }
 
-  /* ============ ROOMS ============ */
-  function renderRooms() {
-    return `
-      ${pageHead("Digitale Büroräume", "Acht thematische Arbeitsbereiche bilden die organisatorische Struktur des geplanten Agentensystems.")}
-      <div class="room-grid">
-        ${ROOM_SEED.map((r) => `
-          <button class="room-card" style="--accent:${r.accent}" data-action="room-enter" data-room="${r.id}">
-            <span class="room-num">RAUM ${esc(r.num)}</span>
-            <h4>${esc(r.name)}</h4>
-            <p>${esc(r.desc)}</p>
-            <span class="room-foot">
-              <span class="room-occupants">${r.occupants.map((o) => `<span>${esc(o)}</span>`).join("")}</span>
-              <span class="room-enter">Betreten ${icon("arrow-right")}</span>
-            </span>
-          </button>`).join("")}
+  function skillsFor(agent) {
+    const base = (AGENT_SKILLS[agent.id] || AGENT_SKILLS.default).map((skill) => ({
+      ...skill,
+      level: state.skillLevels[`${agent.id}:${skill.name}`] ?? skill.level
+    }));
+    const custom = (state.customSkills[agent.id] || []).map((skill) => ({
+      ...skill,
+      level: state.skillLevels[`${agent.id}:${skill.name}`] ?? skill.level
+    }));
+    return [...base, ...custom];
+  }
+  function skillRows(agent) {
+    return skillsFor(agent).map((s) => `
+      <div class="skill-row">
+        <span class="skill-icon">${icon(s.icon)}</span>
+        <span class="skill-copy">
+          <span class="skill-title">${esc(s.name)} <span>Lv. ${s.level}</span></span>
+          <span class="skill-desc">${esc(s.desc)}</span>
+        </span>
+        <button class="skill-edit" data-action="skill-edit" data-agent="${agent.id}" data-skill="${esc(s.name)}">Bearbeiten</button>
+      </div>`).join("");
+  }
+  function personalityBox(agent) {
+    const base = agent.level;
+    return `<div class="personality-box panel" style="margin-top:0">
+      ${panelHead("clock", "Persönlichkeitsprofil", { tone: "purple", right: `<select class="select-mini" data-setting="ui.personality" id="personalitySelect"><option>sassy</option><option>ruhig</option><option>präzise</option><option>verspielt</option></select>` })}
+      <div class="panel-body" style="padding-top:3px">
+        <div class="persona-row">${icon("bolt")}<span style="width:45px">Direktheit</span><span class="persona-bar"><i style="width:${Math.min(100, base * 9)}%"></i></span></div>
+        <div class="persona-row">${icon("brain")}<span style="width:45px">Sarkasmus</span><span class="persona-bar"><i style="width:${Math.min(100, base * 8)}%"></i></span></div>
+        <div class="persona-row">${icon("shield")}<span style="width:45px">Fluchlevel</span><span class="persona-bar"><i style="width:${Math.min(100, base * 3)}%"></i></span></div>
       </div>
-      <div class="section-head"><h3>Raumbelegung</h3><span class="badge">8 Räume</span></div>
-      <div class="panel pad">
-        <div class="three-col">
-          ${ROOM_SEED.slice(0, 6).map((r) => `<div class="between" style="padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.05)"><span class="small"><span class="dot" style="display:inline-block;color:${r.accent};margin-right:7px"></span>${esc(r.name)}</span><span class="badge">${r.occupants.length} Agent</span></div>`).join("")}
-        </div>
-      </div>`;
+    </div>`;
   }
-
-  /* ============ SKILLS ============ */
-  function renderSkills() {
-    const enabled = SKILL_SEED.filter((s) => state.skills[s.id]).length;
+  function renderAgentDetail() {
+    const agent = agentById(state.ui.selectedAgent) || AGENTS[0];
+    const tab = state.ui.agentTab || "skills";
+    let content = "";
+    if (tab === "overview") {
+      content = `<div class="panel">${panelHead("user", "Übersicht")}<div class="panel-body"><p class="hint">${esc(agent.desc)}</p>
+        <div class="stat-strip" style="margin-top:8px">
+          <div class="stat-box"><b>${agent.level}</b><small>LEVEL</small></div>
+          <div class="stat-box"><b>${skillsFor(agent).length}</b><small>SKILLS</small></div>
+          <div class="stat-box"><b>${state.tasks.filter((t) => t.agent === agent.id && t.status !== "erledigt").length}</b><small>AUFGABEN</small></div>
+        </div></div></div>`;
+    } else if (tab === "personality") {
+      content = personalityBox(agent);
+    } else {
+      content = `<div class="panel">${panelHead("skills", "Skills")}<div class="panel-body">
+        <div class="skill-list">${skillRows(agent)}</div>
+        <button class="add-skill-btn" data-action="add-skill" data-agent="${agent.id}">${icon("plus")} Neuen Skill hinzufügen</button>
+        ${personalityBox(agent)}
+      </div></div>`;
+    }
     return `
-      ${pageHead("Skills", "Lokale und mitgelieferte Fähigkeiten. Aktivierung ist im Prototyp nur ein lokaler Schalter.", `
-        <span class="badge green">${enabled} aktiv</span>
-      `)}
-      <div class="note-grid">
-        ${SKILL_SEED.map((s) => {
-          const on = !!state.skills[s.id];
-          return `<div class="note-card" style="--accent:${on ? "#8dff48" : "#6f8989"}">
-            <div class="between">
-              <span class="badge ${on ? "green" : ""}">${esc(s.tag)}</span>
-              <button class="switch ${on ? "on" : ""}" data-action="skill-toggle" data-skill="${s.id}" aria-label="${esc(s.name)} ${on ? "deaktivieren" : "aktivieren"}" aria-pressed="${on}"></button>
+      ${screenHead("agent", `${agent.name} (${agent.code})`, { back: true, action: `<span class="badge green"><span class="dot live"></span> Online</span>` })}
+      <div class="panel">
+        <div class="agent-profile">
+          <img class="agent-profile-photo" src="${agent.portrait}" alt="${esc(agent.name)}" />
+          <div class="profile-stats">
+            <div class="profile-stat">${icon("check-circle")} ${esc(agent.role1)}</div>
+            <div class="profile-stat">${icon("check-circle")} ${esc(agent.role2)}</div>
+            <div class="profile-stat">${icon("check-circle")} Lv. ${agent.level}</div>
+            <div class="profile-level">
+              <span class="agent-bar"><i style="width:${Math.min(100, agent.level * 10)}%"></i></span>
             </div>
-            <h4 style="margin-top:10px">${esc(s.name)}</h4>
-            <p>${esc(s.desc)}</p>
-            <div class="note-foot"><span class="mono">${esc(s.source)}</span><span class="spacer"></span><span class="badge ${on ? "green" : ""}">${on ? "Aktiv" : "Inaktiv"}</span></div>
-          </div>`;
-        }).join("")}
-      </div>`;
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab ${tab === "overview" ? "active" : ""}" data-action="agent-tab" data-tab="overview">Übersicht</button>
+          <button class="tab ${tab === "skills" ? "active" : ""}" data-action="agent-tab" data-tab="skills">Skills</button>
+          <button class="tab ${tab === "personality" ? "active" : ""}" data-action="agent-tab" data-tab="personality">Persönlichkeit</button>
+        </div>
+      </div>
+      ${content}`;
   }
 
-  /* ============ LIBRARY ============ */
-  function renderLibrary() {
-    const q = state.ui.libraryQuery.toLowerCase();
-    const files = LIBRARY_SEED.filter((f) => !q || f.name.toLowerCase().includes(q) || f.project.toLowerCase().includes(q) || f.type.toLowerCase().includes(q));
+  /* ---------------- mutation ---------------- */
+  function mutationAgent() { return agentById(state.ui.mutationAgent) || AGENTS[0]; }
+  function mutationSkills() {
+    const a = mutationAgent();
+    return skillsFor(a).map((s) => s.name);
+  }
+  function renderMutation() {
+    const agent = mutationAgent();
+    const skills = mutationSkills();
+    if (!skills.includes(state.ui.mutationSkill)) state.ui.mutationSkill = skills[0];
+    const result = state.mutationResult;
+    const content = state.ui.mutationContent || "";
     return `
-      ${pageHead("Bibliothek", "Read-Only Dateibrowser. Keine Schreib-, Lösch- oder Ausführungsrechte im Prototyp.", `
-        <span class="badge cyan">${icon("lock")} Read only</span>
-      `)}
-      <div class="library-toolbar">
-        <div class="search-box">
-          ${icon("search")}
-          <input type="search" id="librarySearch" placeholder="Dateien filtern…" value="${esc(state.ui.libraryQuery)}" aria-label="Dateien filtern" />
+      ${screenHead("brain", "Skill-Mutation", { tone: "purple" })}
+      <div class="panel">
+        <div class="panel-body">
+          <div class="form-row">
+            <label for="mutationAgent">Agent</label>
+            <select class="select" id="mutationAgent" data-change="mutation-agent">
+              ${AGENTS.map((a) => `<option value="${a.id}" ${a.id === agent.id ? "selected" : ""}>${esc(a.name)} (${a.code})</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="mutationSkill">Skill</label>
+            <select class="select" id="mutationSkill" data-change="mutation-skill">
+              ${skills.map((s) => `<option ${s === state.ui.mutationSkill ? "selected" : ""}>${esc(s)} (Lv. ${agent.level})</option>`).join("")}
+            </select>
+          </div>
+          <div class="segmented">
+            <button class="${state.ui.mutationMode === "manuell" ? "active" : ""}" data-action="mutation-mode" data-mode="manuell">Manuell</button>
+            <button class="${state.ui.mutationMode === "ki" ? "active" : ""}" data-action="mutation-mode" data-mode="ki">Mit KI (Ollama)</button>
+          </div>
+          <div class="form-row" style="align-items:flex-start;padding-top:0">
+            <label for="mutationContent" style="padding-top:6px">Neuer Inhalt</label>
+            <div style="flex:1;min-width:0">
+              <textarea class="textarea" id="mutationContent" maxlength="500" data-bind="mutationContent">${esc(content)}</textarea>
+              <div class="counter" id="mutationCounter">${content.length}/500</div>
+            </div>
+          </div>
+          <label class="check-row"><input type="checkbox" id="mutationAutonomous" data-toggle="ui.mutationAutonomous" ${state.ui.mutationAutonomous ? "checked" : ""} /> autonom (Safety-Check)</label>
+          <button class="btn purple wide" style="min-height:34px" data-action="mutation-run">${icon("skills")} Mutation ausführen</button>
         </div>
-        <span class="badge">${files.length} Dateien</span>
-        <span class="badge">${new Set(LIBRARY_SEED.map((f) => f.project)).size} Projekte</span>
       </div>
       <div class="panel">
-        <table class="file-table">
-          <thead><tr><th>Name</th><th>Typ</th><th>Größe</th><th>Projekt</th><th>Geändert</th><th></th></tr></thead>
-          <tbody id="libraryRows">${fileRows(files)}</tbody>
-        </table>
-        ${files.length === 0 ? `<div class="empty">${icon("search")}<strong>Keine Dateien gefunden</strong><p>Passe den Filter an.</p></div>` : ""}
+        ${panelHead("skills", "Ergebnis", { tone: "purple" })}
+        <div class="panel-body">
+          <div class="result-box" style="margin-top:0">
+            <div class="result-success">${icon("check-circle")} Mutation erfolgreich!</div>
+            <div class="result-meta">
+              <div>${icon("skills")} Level: ${result.levelFrom} → ${result.levelTo}</div>
+              <div>${icon("check-circle")} Version: ${result.versionFrom} → ${result.versionTo}</div>
+              <div>${icon("lock")} Hash: ${esc(result.hash)}</div>
+            </div>
+            <button class="btn ghost wide" data-action="open-audit">${icon("clipboard")} Im Audit-Log anzeigen</button>
+          </div>
+        </div>
       </div>`;
   }
 
-  function fileRows(files) {
-    return files.map((f) => `<tr>
-      <td><span class="file-name" style="--accent:${f.accent}">${icon(f.icon)} ${esc(f.name)}</span></td>
-      <td><span class="file-type">${esc(f.type)}</span></td>
-      <td><span class="file-size">${esc(f.size)}</span></td>
-      <td><span class="small">${esc(f.project)}</span></td>
-      <td><span class="file-size">${esc(f.updated)}</span></td>
-      <td><button class="icon-btn sm" data-action="file-open" data-file="${f.id}" aria-label="${esc(f.name)} ansehen">${icon("eye")}</button></td>
-    </tr>`).join("");
+  /* ---------------- models ---------------- */
+  function renderModels() {
+    const connected = state.connection.status === "ok";
+    const models = [...MODELS, ...(state.customModels || [])];
+    return `
+      ${screenHead("brain", "KI-Modelle (Ollama)", { tone: "purple", action: `<button class="icon-btn" data-action="test-connection" aria-label="Verbindung testen">${icon("refresh")}</button>` })}
+      <div class="panel">
+        <div class="connection-line">
+          <span class="dot ${connected ? "live" : ""}" style="color:${connected ? "var(--green)" : "var(--yellow)"}"></span>
+          <span>${connected ? "Verbunden" : "Demo-Modus"}</span>
+          <span class="url">${esc(state.settings.ollamaUrl)}</span>
+        </div>
+        <div class="model-list">
+          ${models.map((m) => `<button class="model-row ${state.settings.model === m.id ? "active" : ""}" data-action="model-select" data-model="${esc(m.id)}">
+            <span class="model-logo" style="background:${m.color};${m.dark ? "color:#24303d" : ""}">${m.logo || icon(m.icon)}</span>
+            <span class="grow"><span class="model-name">${esc(m.name)}</span><span class="model-tags">${(m.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</span></span>
+            <span class="model-status"><span class="dot"></span> Bereit</span>
+          </button>`).join("")}
+        </div>
+        <div class="panel-body" style="padding-top:0"><button class="btn wide" data-action="test-connection">${icon("refresh")} Modelle aktualisieren</button></div>
+      </div>
+      <div class="panel test-panel">
+        ${panelHead("bolt", "Testen")}
+        <div class="panel-body">
+          <div class="form-row" style="padding-top:0">
+            <label for="testModel">Modell</label>
+            <select class="select" id="testModel" data-change="test-model">
+              ${models.map((m) => `<option value="${esc(m.id)}" ${state.modelTest.model === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
+            </select>
+          </div>
+          <textarea class="textarea" id="modelPrompt" data-bind="modelTest.prompt" style="min-height:64px">${esc(state.modelTest.prompt)}</textarea>
+          <button class="btn primary wide" style="margin-top:6px" data-action="model-send">${icon("play")} Senden</button>
+          <div class="test-answer-title">Antwort</div>
+          <div class="test-answer" id="modelAnswer">${esc(state.modelTest.answer || "Noch keine Antwort.")}</div>
+        </div>
+      </div>`;
   }
 
-  /* ============ TASKS ============ */
+  /* ---------------- loop ---------------- */
+  function renderLoop() {
+    const loop = state.loop;
+    const phase = LOOP_PHASES[Math.min(LOOP_PHASES.length - 1, loop.completed)] || "Analyse";
+    return `
+      ${screenHead("loop", "Entwicklungsloop")}
+      <div class="panel">
+        <div class="loop-top">
+          <div class="loop-ring-wrap">
+            ${loopRingSvg(loop.progress)}
+            <div class="loop-center"><small>Zyklus ${loop.cycle} / ${loop.total}</small><b id="loopPctText">${Math.round(loop.progress)}%</b></div>
+          </div>
+          <div class="loop-phase-list" id="loopPhaseList">${loopPhaseList()}</div>
+        </div>
+        <div class="panel-body" style="padding-top:0">${controlButtons()}</div>
+      </div>
+      <div class="panel">
+        ${panelHead("gear", "Loop-Einstellungen")}
+        <div class="panel-body" style="padding-top:2px">
+          <div class="settings-list">
+            <div class="setting-line"><span>Zyklen gesamt</span><select class="select" data-change="loop-total">${[5, 10, 15, 20, 30].map((n) => `<option ${n === loop.total ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+            <div class="setting-line"><span>Intervall (Sek.)</span><select class="select" data-change="loop-interval">${[3, 5, 10, 30, 60].map((n) => `<option ${n === loop.interval ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+            <div class="setting-line"><span>Mutation-Chance</span><input class="input" type="number" min="0" max="100" value="${loop.mutationChance}" data-change="loop-mutation" /><span class="unit">%</span></div>
+            <div class="setting-line"><span class="green">${icon("check-circle")} Autonomer Modus</span><label class="switch"><input type="checkbox" data-toggle="loopAutonomous" ${loop.autonomous ? "checked" : ""} /><span></span></label></div>
+            <div class="setting-line"><span class="green">${icon("shield")} Safety-Controller</span><label class="switch"><input type="checkbox" data-toggle="loopSafety" ${loop.safety !== false ? "checked" : ""} /><span></span></label></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        ${panelHead("check-circle", "Aktueller Status")}
+        <div class="panel-body">
+          <div class="status-info">
+            <div>${icon("clock")} Phase: <span id="loopStatusPhase">${esc(phase)}</span></div>
+            <div>${icon("brain")} Letzte Aktion: <span id="loopLastAction">${esc(loop.lastAction)}</span></div>
+            <div>${icon("shield")} Nächste Aktion: <span id="loopNextAction">${esc(loop.nextAction)}</span></div>
+            <div>${icon("refresh")} Laufzeit: <span class="mono" id="loopElapsed">${formatElapsed(loop.elapsed)}</span></div>
+          </div>
+        </div>
+      </div>`;
+  }
+  function formatElapsed(seconds) {
+    const s = Math.max(0, Math.round(seconds));
+    return `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  }
+
+  /* ---------------- projects ---------------- */
+  function renderProjects() {
+    const filter = state.ui.projectFilter || "alle";
+    const filtered = state.projects.filter((p) => filter === "alle" || (filter === "aktiv" ? ["Aktiv", "In Arbeit"].includes(p.status) : p.status === "Archiv"));
+    const count = (f) => state.projects.filter((p) => f === "alle" || (f === "aktiv" ? ["Aktiv", "In Arbeit"].includes(p.status) : p.status === "Archiv")).length;
+    return `
+      ${screenHead("folder", "Projekte", { action: `<button class="btn primary sm" data-action="open-project">${icon("plus")} Neues Projekt</button>` })}
+      <div class="filter-tabs">
+        <button class="filter-tab ${filter === "alle" ? "active" : ""}" data-action="project-filter" data-filter="alle">Alle (${count("alle")})</button>
+        <button class="filter-tab ${filter === "aktiv" ? "active" : ""}" data-action="project-filter" data-filter="aktiv">Aktiv (${count("aktiv")})</button>
+        <button class="filter-tab ${filter === "archiv" ? "active" : ""}" data-action="project-filter" data-filter="archiv">Archiv (${count("archiv")})</button>
+      </div>
+      <div class="project-list">
+        ${filtered.map((p) => `<button class="project-row" data-action="project-open" data-project="${p.id}">
+          <span class="project-icon" style="--c1:${p.c1};--c2:${p.c2}">${icon(p.icon)}</span>
+          <span class="project-copy">
+            <span class="project-name">${esc(p.name)}</span>
+            <span class="project-type">${esc(p.type)}</span>
+            <span class="project-meta">${icon("clock")} Geändert: ${formatDate(p.updated)}</span>
+          </span>
+          <span class="badge ${p.status === "Aktiv" ? "green" : p.status === "In Arbeit" ? "orange" : p.status === "Pause" ? "red" : "neutral"}">${icon(p.status === "Archiv" ? "lock" : "check-circle")} ${esc(p.status)}</span>
+        </button>`).join("") || `<div class="empty">Keine Projekte in diesem Filter.</div>`}
+      </div>`;
+  }
+
+  /* ---------------- tasks ---------------- */
+  function taskStatusClass(s) { return s === "erledigt" ? "done" : s === "arbeit" ? "doing" : "open"; }
   function renderTasks() {
-    const filter = state.ui.taskFilter;
-    const tasks = state.tasks.filter((t) => filter === "alle" ? true : t.status === filter);
+    const filter = state.ui.taskFilter || "alle";
+    const filtered = state.tasks.filter((t) => filter === "alle" || (filter === "offen" ? t.status === "offen" : filter === "arbeit" ? t.status === "arbeit" : t.status === "erledigt"));
     const counts = {
-      alle: state.tasks.length,
       offen: state.tasks.filter((t) => t.status === "offen").length,
       arbeit: state.tasks.filter((t) => t.status === "arbeit").length,
       erledigt: state.tasks.filter((t) => t.status === "erledigt").length
     };
     return `
-      ${pageHead("Aufgaben", "Aufgaben erstellen, priorisieren und lokal in einer JSON-Struktur speichern.", `<button class="btn primary sm" data-action="new-task">${icon("plus")} Neue Aufgabe</button>`)}
-      <div class="task-layout">
-        <div>
-          <div class="task-summary">
-            <div class="task-sum" style="--c:var(--red)"><div class="n">${counts.offen}</div><div class="l">Offen</div></div>
-            <div class="task-sum" style="--c:var(--orange)"><div class="n">${counts.arbeit}</div><div class="l">In Arbeit</div></div>
-            <div class="task-sum" style="--c:var(--green)"><div class="n">${counts.erledigt}</div><div class="l">Erledigt</div></div>
-          </div>
-          <div class="task-filters">
-            ${[["alle", "Alle", counts.alle], ["offen", "Offen", counts.offen], ["arbeit", "In Arbeit", counts.arbeit], ["erledigt", "Erledigt", counts.erledigt]].map(([key, label, count]) => `
-              <button class="chip ${filter === key ? "active" : ""}" data-action="task-filter" data-value="${key}">${label} <span class="count">${count}</span></button>
-            `).join("")}
-          </div>
-          <div class="panel">
-            <div class="panel-body" style="padding:11px 12px">
-              <div class="task-list" id="taskList">
-                ${tasks.length ? tasks.map(taskRow).join("") : `<div class="empty">${icon("check-square")}<strong>Keine Aufgaben in diesem Filter</strong><p>Erstelle eine neue Aufgabe oder wechsle den Filter.</p></div>`}
-              </div>
-              <form class="quick-add" data-form="quick-task">
-                <input class="input" name="quickTitle" placeholder="Aufgabe hinzufügen…" aria-label="Neue Aufgabe" required />
-                <select class="select" name="quickPriority" aria-label="Priorität">
-                  <option value="mittel">Mittel</option><option value="hoch">Hoch</option><option value="niedrig">Niedrig</option>
-                </select>
-                <button class="btn primary" type="submit" aria-label="Hinzufügen">${icon("plus")}</button>
-              </form>
-            </div>
-          </div>
-        </div>
-        <div class="stack">
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("clipboard")} To-do-Tafel</div><span class="badge">${counts.alle}</span></div>
-            <div class="panel-body">
-              <div class="task-board">
-                ${["offen", "arbeit", "erledigt"].map((key) => `
-                  <div class="task-col">
-                    <h5><span>${TASK_STATUS[key].label}</span><span class="count">${counts[key]}</span></h5>
-                    ${state.tasks.filter((t) => t.status === key).map((t) => `
-                      <div class="task-card">
-                        <span class="prio" style="background:${PRIORITY[t.priority].color}"></span>${esc(t.title)}
-                        <div class="small muted" style="margin-top:3px">${esc(agentById(t.agent)?.name || "–")}</div>
-                      </div>`).join("") || `<p class="small muted">—</p>`}
-                  </div>`).join("")}
-              </div>
-            </div>
-          </div>
-          <div class="panel pad">
-            <div class="badge green">Lokale Speicherung</div>
-            <p class="field-hint" style="margin-top:8px">Aufgaben liegen in <code>localStorage</code> und werden nicht automatisch zwischen Geräten synchronisiert.</p>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function taskRow(t) {
-    const agent = agentById(t.agent);
-    return `<div class="task-row ${t.status === "erledigt" ? "done" : ""}">
-      <button class="check-btn" data-action="toggle-task" data-task="${t.id}" aria-label="Aufgabe ${t.status === "erledigt" ? "öffnen" : "abschließen"}">${icon("check")}</button>
-      <div class="task-main">
-        <div class="task-name">${esc(t.title)}</div>
-        <div class="task-sub">
-          <span class="badge ${PRIORITY[t.priority].cls}">${esc(t.priority)}</span>
-          <span><span class="agent-dot" style="background:${agent?.accent || "var(--green)"}"></span> ${esc(agent?.name || "–")}</span>
-          <span>${esc(t.project || "Allgemein")}</span>
-          <span>${esc(formatDate(t.due))}</span>
-        </div>
+      ${screenHead("check-circle", "To-Do Tafel", { tone: "purple", action: `<button class="btn primary sm" data-action="open-task">${icon("plus")} Neue Notiz</button>` })}
+      <div class="task-filters">
+        <button class="task-filter open ${filter === "offen" ? "active" : ""}" data-action="task-filter" data-filter="offen">Offen (${counts.offen})</button>
+        <button class="task-filter doing ${filter === "arbeit" ? "active" : ""}" data-action="task-filter" data-filter="arbeit">In Arbeit (${counts.arbeit})</button>
+        <button class="task-filter done ${filter === "erledigt" ? "active" : ""}" data-action="task-filter" data-filter="erledigt">Erledigt (${counts.erledigt})</button>
       </div>
-      <button class="icon-btn sm task-del" data-action="delete-task" data-task="${t.id}" aria-label="Aufgabe löschen">${icon("trash")}</button>
-    </div>`;
-  }
-
-  /* ============ CHAT ============ */
-  function renderChat() {
-    const activeAgent = chatAgent();
-    const connected = state.connection.status === "ok";
-    const models = modelChoices();
-    return `
-      ${pageHead("Lokaler KI-Chat", "Anfragen gehen an das konfigurierte Ollama-Modell. Ohne Verbindung wird eine klar gekennzeichnete Demo-Antwort erzeugt.")}
-      <div class="chat-layout">
-        <div class="panel chat-side">
-          <div class="panel-head"><div class="panel-title">${icon("chat")} Sitzungen</div><span class="badge">${AGENT_SEED.length + 1}</span></div>
-          <button class="btn primary sm chat-new" data-action="new-chat">${icon("plus")} Neue Sitzung</button>
-          <div class="convo-list">
-            <div class="convo ${state.chat.agent === "nexus" ? "active" : ""}" data-action="chat-agent" data-agent="nexus">${icon("sparkles")} NEXUS Chat <span class="conv-meta">Standard</span></div>
-            ${AGENT_SEED.map((a) => `<div class="convo ${state.chat.agent === a.id ? "active" : ""}" data-action="chat-agent" data-agent="${a.id}">${icon("users")} ${esc(a.name)} <span class="conv-meta">${esc(a.role.split(" ")[0])}</span></div>`).join("")}
-          </div>
-          <div style="padding:10px;border-top:1px solid var(--line)">
-            <div class="conn-row ${connected ? "" : "err"}" style="font-size:10.5px;padding:7px 8px">${icon(connected ? "wifi" : "alert")} ${connected ? "Ollama verbunden" : "Demo-Modus"}</div>
-          </div>
-        </div>
-
-        <div class="panel chat-main">
-          <div class="chat-head">
-            <span class="agent-ava" style="--accent:${activeAgent?.accent || "#8dff48"};color:${activeAgent?.accent || "#8dff48"}">${esc(activeAgent?.code || "NX")}</span>
-            <div class="chat-head-copy">
-              <strong id="chatAgentName">${esc(activeAgent?.name || "NEXUS Chat")}</strong>
-              <small>${activeAgent ? esc(activeAgent.role) : "Lokale Chat-Schnittstelle"} · <span id="chatModelLabel">${esc(state.settings.model)}</span></small>
-            </div>
-            <span class="badge ${connected ? "green" : "orange"}" id="chatConnBadge">${connected ? "Lokal verbunden" : "Demo"}</span>
-            <button class="icon-btn sm" data-action="clear-chat" aria-label="Chat leeren">${icon("trash")}</button>
-          </div>
-          <div class="chat-messages" id="chatMessages">${chatMessages()}</div>
-          <div class="chat-composer">
-            <form data-form="chat" id="chatForm">
-              <div class="composer-box">
-                <textarea id="chatInput" name="message" rows="1" placeholder="Nachricht an ${esc(activeAgent?.name || "NEXUS")} …" aria-label="Chat-Nachricht" ${ui.chatTyping ? "disabled" : ""}></textarea>
-                <button class="btn primary" type="submit" id="chatSend" aria-label="Senden" ${ui.chatTyping ? "disabled" : ""}>${icon("send")}</button>
-              </div>
-              <div class="composer-meta">
-                <span class="dot" style="color:${connected ? "var(--green)" : "var(--orange)"}"></span>
-                <span>${connected ? "Ollama erreichbar · echte Generierung" : "Demo-Modus · keine echte Modellantwort"}</span>
-                <span class="spacer"></span>
-                <select class="select chat-select" id="chatModel" aria-label="Modell wählen">
-                  ${models.map((m) => `<option value="${esc(m.name)}" ${m.name === state.settings.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
-                </select>
-                <span class="kbd">Enter</span>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="task-list">
+        ${filtered.map((t) => {
+          const a = agentById(t.agent) || AGENTS[0];
+          const done = t.status === "erledigt";
+          return `<div class="task-row" style="--priority:${t.priority === "hoch" ? "#ff3a67" : t.priority === "mittel" ? "#ffd12e" : "#2cff8f"}">
+            <button class="task-check ${done ? "done" : ""}" data-action="task-toggle" data-task="${t.id}" aria-label="Aufgabe abhaken">${done ? icon("check") : ""}</button>
+            <img class="task-avatar" src="${a.portrait}" alt="${esc(a.name)}" loading="lazy" />
+            <span class="task-copy">
+              <span class="task-title" style="${done ? "text-decoration:line-through;opacity:.7" : ""}">${esc(t.title)}</span>
+              <span class="task-meta"><span class="agent-chip">${a.code} <b>${esc(a.name)}</b></span> ${icon("clock")} ${formatDate(t.due)}</span>
+            </span>
+            <span class="task-priority ${t.priority}">${esc(t.priority)}</span>
+          </div>`;
+        }).join("") || `<div class="empty">Keine Aufgaben in diesem Filter.</div>`}
       </div>`;
   }
 
-  function chatMessages() {
-    if (!state.chat.messages.length) {
-      return `<div class="empty">${icon("chat")}<strong>Neue Sitzung</strong><p>Stelle eine Frage an das lokale Modell.</p></div>`;
-    }
-    return state.chat.messages.map((m) => {
-      const agent = m.role === "user" ? null : chatAgent();
-      const initials = m.role === "user" ? "DU" : agent?.code || "NX";
-      return `<div class="msg ${m.role}">
-        <span class="msg-ava" ${agent ? `style="color:${agent.accent};border-color:${agent.accent}44;background:${agent.accent}11"` : ""}>${esc(initials)}</span>
-        <div>
-          <div class="msg-bubble">${formatMessage(m.text)}</div>
-          <div class="msg-meta">${esc(m.time)}${m.demo ? ` · <span class="badge orange" style="font-size:8px;padding:1px 5px">Demo</span>` : m.model ? ` · ${esc(m.model)}` : ""}</div>
-        </div>
-      </div>`;
-    }).join("") + (ui.chatTyping ? `<div class="msg"><span class="msg-ava">NX</span><div class="msg-bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>` : "");
-  }
-
-  function formatMessage(text) {
-    let safe = esc(text);
-    const blocks = [];
-    safe = safe.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-      const idx = blocks.length;
-      blocks.push(`<pre><code>${code.replace(/\n$/, "")}</code></pre>`);
-      return `\u0000BLOCK${idx}\u0000`;
-    });
-    safe = safe.replace(/`([^`\n]+)`/g, "<code>$1</code>");
-    safe = safe.replace(/\u0000BLOCK(\d+)\u0000/g, (_, i) => blocks[Number(i)]);
-    return safe.replace(/\n/g, "<br />");
-  }
-
-  function chatAgent() {
-    if (state.chat.agent === "nexus") return null;
-    return agentById(state.chat.agent) || null;
-  }
-
-  function scrollChat() {
-    const el = $("#chatMessages");
-    if (el) el.scrollTop = el.scrollHeight;
-  }
-
-  function refreshChat() {
-    const msgs = $("#chatMessages");
-    if (!msgs) return;
-    msgs.innerHTML = chatMessages();
-    scrollChat();
-    const input = $("#chatInput");
-    if (input) input.disabled = ui.chatTyping;
-    const send = $("#chatSend");
-    if (send) send.disabled = ui.chatTyping;
-  }
-
-  /* ============ NOTES ============ */
-  function renderNotes() {
-    const q = state.ui.noteQuery.toLowerCase();
-    const notes = state.notes.filter((n) => !q || n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q));
-    return `
-      ${pageHead("Notizen", "Notizen werden ausschließlich im Browser über localStorage gespeichert.", `<button class="btn primary sm" data-action="new-note">${icon("plus")} Neue Notiz</button>`)}
-      <div class="library-toolbar">
-        <div class="search-box">
-          ${icon("search")}
-          <input type="search" id="noteSearch" placeholder="Notizen durchsuchen…" value="${esc(state.ui.noteQuery)}" aria-label="Notizen durchsuchen" />
-        </div>
-        <span class="badge">${notes.length} Notizen</span>
-        <span class="badge cyan">${icon("lock")} lokal</span>
-      </div>
-      <div class="note-grid" id="noteGrid">${noteCards(notes)}</div>`;
-  }
-
-  function noteCards(notes) {
-    if (!notes.length) return `<div class="empty" style="grid-column:1/-1">${icon("note")}<strong>Keine Notizen gefunden</strong><p>Erstelle eine neue Notiz oder passe die Suche an.</p></div>`;
-    return notes.map((n) => `<div class="note-card" style="--accent:${n.accent || "#8dff48"}">
-      <div class="note-actions">
-        <button class="icon-btn" data-action="edit-note" data-note="${n.id}" aria-label="Notiz bearbeiten">${icon("note")}</button>
-        <button class="icon-btn" data-action="delete-note" data-note="${n.id}" aria-label="Notiz löschen">${icon("trash")}</button>
-      </div>
-      <h4>${esc(n.title)}</h4>
-      <p>${esc(n.body)}</p>
-      <div class="note-foot"><span class="dot" style="color:${n.accent || "var(--green)"}"></span><span>${relativeTime(n.updated)}</span><span class="spacer"></span><span>Local</span></div>
-    </div>`).join("");
-  }
-
-  /* ============ SETTINGS ============ */
-  function renderSettings() {
-    const s = state.settings;
-    const models = modelChoices();
-    return `
-      ${pageHead("Einstellungen", "Ollama, Darstellung, Sicherheitsgrenzen und lokale Limits.", `
-        <button class="btn ghost sm" data-action="export-data">${icon("download")} Exportieren</button>
-      `)}
-      <div class="settings-grid">
-        <div class="stack">
-          <div class="panel">
-            <div class="settings-section">
-              <h4>${icon("cpu")} Allgemein</h4>
-              <div class="setting-row">
-                <div class="setting-copy"><strong>Ollama URL</strong><small>Adresse der lokalen Ollama-API</small></div>
-                <input class="input mono" style="font-size:12px" data-setting="ollamaUrl" value="${esc(s.ollamaUrl)}" spellcheck="false" aria-label="Ollama URL" />
-              </div>
-              <div class="setting-row">
-                <div class="setting-copy"><strong>Standardmodell</strong><small>Wird für neue Chat-Anfragen verwendet</small></div>
-                <select class="select" data-setting="model" aria-label="Standardmodell">
-                  ${models.map((m) => `<option value="${esc(m.name)}" ${m.name === s.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
-                </select>
-              </div>
-              <div class="setting-row">
-                <div class="setting-copy"><strong>Sprache</strong><small>Oberflächensprache des Prototyps</small></div>
-                <select class="select" data-setting="language" aria-label="Sprache">
-                  <option value="de" ${s.language === "de" ? "selected" : ""}>Deutsch</option>
-                  <option value="en" ${s.language === "en" ? "selected" : ""}>English (Vorschau)</option>
-                </select>
-              </div>
-              <div class="setting-row">
-                <div class="setting-copy"><strong>Theme</strong><small>Akzentfarbe des Dashboards</small></div>
-                <select class="select" data-setting="theme" aria-label="Theme">
-                  <option value="cyberpunk" ${s.theme === "cyberpunk" ? "selected" : ""}>Cyberpunk (Grün)</option>
-                  <option value="plasma" ${s.theme === "plasma" ? "selected" : ""}>Plasma (Cyan)</option>
-                  <option value="amber" ${s.theme === "amber" ? "selected" : ""}>Amber (Orange)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="settings-section">
-              <h4>${icon("shield")} Sicherheit</h4>
-              ${toggleSetting("Sicherheits-Controller", "Prüft Aktionen vor der Ausführung", "safety.controller", s.safety.controller)}
-              ${toggleSetting("Autonomer Modus", "Erlaubt unbestätigte Loop-Schritte", "safety.autonomous", s.safety.autonomous)}
-              ${toggleSetting("Code-Ausführung", "Shell- und Skriptausführung", "safety.codeExec", s.safety.codeExec)}
-              ${toggleSetting("Netzwerkzugriff", "Externe Endpunkte verwenden", "safety.network", s.safety.network)}
-              ${toggleSetting("Freigabe erforderlich", "Änderungen nur nach Bestätigung", "safety.release", s.safety.release)}
-            </div>
-
-            <div class="settings-section">
-              <h4>${icon("sliders")} Limits</h4>
-              <div class="setting-row">
-                <div class="setting-copy"><strong>Mutationen pro Stunde</strong><small>Maximale Änderungen im Loop (Demo)</small></div>
-                <div class="limit-row"><input class="input" type="number" min="1" max="200" data-setting="limits.mutations" value="${esc(s.limits.mutations)}" /><span class="muted small">/ h</span></div>
-              </div>
-              <div class="setting-row">
-                <div class="setting-copy"><strong>Cooldown</strong><small>Wartezeit zwischen Zyklen (Demo)</small></div>
-                <div class="limit-row"><input class="input" type="number" min="0" max="3600" data-setting="limits.cooldown" value="${esc(s.limits.cooldown)}" /><span class="muted small">s</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel pad">
-            <div class="between">
-              <div><strong style="font-size:13px">Daten exportieren</strong><p class="field-hint">Aufgaben, Notizen, Einstellungen und Audit-Protokoll als JSON.</p></div>
-              <button class="btn ghost sm" data-action="export-data">${icon("download")} JSON</button>
-            </div>
-            <hr class="hr" />
-            <div class="between">
-              <div><strong style="font-size:13px;color:var(--red)">Lokale Daten zurücksetzen</strong><p class="field-hint">Entfernt alle lokalen Zustände und stellt die Demo-Daten wieder her.</p></div>
-              <button class="btn danger sm" data-action="reset-data">${icon("trash")} Reset</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="stack">
-          <div class="panel">
-            <div class="panel-head"><div class="panel-title">${icon("radio")} Systemstatus</div><span class="badge green"><span class="dot"></span> Online</span></div>
-            <div class="panel-body">
-              <div class="session-row"><span class="session-dot"></span><span class="session-name">Frontend</span><span class="badge green">Bereit</span></div>
-              <div class="session-row"><span class="session-dot ${state.connection.status === "ok" ? "" : "idle"}"></span><span class="session-name">Ollama</span><span class="badge ${state.connection.status === "ok" ? "green" : "orange"}">${state.connection.status === "ok" ? "Verbunden" : "Demo"}</span></div>
-              <div class="session-row"><span class="session-dot ${state.loop.running ? "" : "idle"}"></span><span class="session-name">Loop</span><span class="badge ${state.loop.running ? "green" : ""}">${state.loop.running ? (state.loop.paused ? "Pausiert" : "Läuft") : "Bereit"}</span></div>
-              <button class="btn block ghost sm" style="margin-top:10px" data-action="test-connection">${icon("refresh")} Verbindung testen</button>
-            </div>
-          </div>
-          <div class="panel pad">
-            <div class="badge cyan">Version</div>
-            <h4 style="margin-top:9px;font-family:var(--font-brand);font-size:15px">NEXUS CLAW V7.4.1</h4>
-            <p class="field-hint" style="margin-top:4px">Hybrid AI Office · Mobile Dashboard.<br />Funktionsfähiger Prototyp mit lokaler Demo-Persistenz.</p>
-            <div class="hr"></div>
-            <p class="field-hint">Dashboard-Port (optionales Flask-Backend): <span class="mono">5000</span><br />Ollama: <span class="mono">${esc(s.ollamaUrl)}</span></p>
-          </div>
-          <div class="panel pad">
-            <div class="badge orange">Hinweis</div>
-            <p class="field-hint" style="margin-top:8px">Sicherheits-Schalter sind im Prototyp rein lokal. Sie erzwingen keine echten Berechtigungen und ersetzen keine Sandbox.</p>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function toggleSetting(label, hint, key, on) {
-    return `<div class="setting-row">
-      <div class="setting-copy"><strong>${esc(label)}</strong><small>${esc(hint)}</small></div>
-      <button class="switch ${on ? "on" : ""}" data-action="toggle-setting" data-setting-key="${key}" aria-pressed="${on}" aria-label="${esc(label)} ${on ? "deaktivieren" : "aktivieren"}"></button>
-    </div>`;
-  }
-
-  /* ============ AUDIT ============ */
-  function renderAudit() {
-    const filter = state.ui.auditFilter;
-    const filters = ["alle", "mutation", "code", "test", "safety", "system"];
-    const list = state.audit.filter((a) => filter === "alle" ? true : a.type === filter);
-    return `
-      ${pageHead("Audit-Protokoll", "Alle Ereignisse werden lokal gespeichert. Einträge entstehen durch Aktionen im Prototyp.", `<button class="btn danger sm" data-action="clear-audit">${icon("trash")} Leeren</button>`)}
-      <div class="library-toolbar">
-        ${filters.map((key) => `<button class="chip ${filter === key ? "active" : ""}" data-action="audit-filter" data-value="${key}">${key === "alle" ? "Alle" : key} <span class="count">${state.audit.filter((a) => key === "alle" ? true : a.type === key).length}</span></button>`).join("")}
-        <span class="spacer"></span>
-        <span class="badge green"><span class="dot"></span> Live</span>
-      </div>
-      <div class="panel">
-        <div class="panel-body" id="auditFeed">
-          <div class="audit-feed">
-            ${list.length ? list.map((a) => {
-              const style = AUDIT_STYLE[a.type] || AUDIT_STYLE.system;
-              return `<div class="audit-item">
-                <span class="audit-item-time">${esc(a.time)}</span>
-                <span class="audit-icon" style="--evt:${style.color}">${icon(style.icon)}</span>
-                <div class="audit-item-body"><strong>${esc(a.actor)}</strong> <span class="who">${esc(a.text)}</span></div>
-                <span class="badge">${esc(a.type)}</span>
-              </div>`;
-            }).join("") : `<div class="empty">${icon("activity")}<strong>Keine Einträge</strong><p>Wähle einen anderen Filter.</p></div>`}
-          </div>
-        </div>
-      </div>`;
-  }
-
-  /* ============ TERMINAL ============ */
+  /* ---------------- terminal ---------------- */
   function renderTerminal() {
+    const tab = state.ui.terminalTab || "terminal";
+    let body = "";
+    if (tab === "processes") {
+      body = `<div class="term-processes">${terminalProcesses().map((p) => `<div class="proc-row">${icon(p.icon)}<span>${esc(p.name)}</span><span class="num">${p.cpu}%</span><span class="num">${p.ram}</span></div>`).join("")}</div>`;
+    } else if (tab === "logs") {
+      body = `<div class="term-logs">${state.audit.slice(0, 10).map((a) => `<div class="audit-row"><span class="audit-time">${a.time}</span><span class="audit-type" style="color:${(AUDIT_TYPES[a.type] || AUDIT_TYPES.system).color}">${esc(a.type)}</span><span class="audit-text">${esc(a.actor)} ${esc(a.text)}</span></div>`).join("")}</div>`;
+    } else {
+      body = `<div class="term-output" id="termOutput">${state.terminal.map(termLine).join("")}</div>
+        <form class="term-input-row" data-form="terminal">
+          <span class="term-prompt">nexus@horus:~/nexus_v7$</span>
+          <input class="term-input" id="termInput" name="command" autocomplete="off" spellcheck="false" aria-label="Terminal-Befehl" />
+        </form>`;
+    }
     return `
-      ${pageHead("Terminal (Horus Linux)", "Simulierte Shell. Befehle werden nicht ausgeführt und verändern keine Dateien.", `
-        <span class="badge orange">${icon("alert")} Nur Simulation</span>
-      `)}
-      <div class="terminal-wrap">
-        <div class="terminal-head">
-          <span class="term-dots"><span></span><span></span><span></span></span>
-          <strong>nexus@horus: ~/NEXUS_V7</strong>
-          <span class="badge green">verbunden</span>
+      ${screenHead("terminal", "Terminal (HORUS Linux)")}
+      <div class="terminal-shell">
+        <div class="term-tabs">
+          <button class="term-tab ${tab === "terminal" ? "active" : ""}" data-action="term-tab" data-tab="terminal">Terminal</button>
+          <button class="term-tab ${tab === "processes" ? "active" : ""}" data-action="term-tab" data-tab="processes">Prozesse</button>
+          <button class="term-tab ${tab === "logs" ? "active" : ""}" data-action="term-tab" data-tab="logs">Logs</button>
+          <button class="term-tab add" data-action="term-new" aria-label="Neue Terminal-Sitzung">${icon("plus")}</button>
         </div>
-        <div class="terminal-body" id="terminalBody" tabindex="0">${terminalLines()}</div>
-        <div class="term-keys">
-          <button class="term-key" data-action="term-key" data-key="CTRL">CTRL</button>
-          <button class="term-key" data-action="term-key" data-key="ALT">ALT</button>
-          <button class="term-key" data-action="term-key" data-key="TAB">TAB</button>
-          <button class="term-key" data-action="term-key" data-key="ESC">ESC</button>
-          <button class="term-key" data-action="term-key" data-key="help">help</button>
-          <button class="term-key" data-action="term-key" data-key="clear">clear</button>
-          <span class="spacer"></span>
-          <span class="badge">Horus Linux</span>
-        </div>
-      </div>
-      <div class="section-head"><h3>Befehlsreferenz</h3><span class="badge">simuliert</span></div>
-      <div class="three-col">
-        ${terminalHelp().map((c) => `<div class="panel pad"><div class="mono text-green" style="font-size:12px">${esc(c.cmd)}</div><p class="field-hint" style="margin-top:5px">${esc(c.desc)}</p></div>`).join("")}
+        ${body}
       </div>`;
   }
-
-  function terminalLines() {
-    return state.terminal.slice(-80).map((line) => {
-      if (line.kind === "cmd") return `<div class="term-line"><span class="prompt">nexus@horus:~$</span> ${esc(line.text)}</div>`;
-      const cls = line.kind === "sys" ? "cyan" : line.kind === "ok" ? "text-green" : line.kind === "warn" ? "yellow" : line.kind === "err" ? "red" : "dim";
-      return `<div class="term-line ${cls}">${esc(line.text)}</div>`;
-    }).join("") + `
-      <form class="term-input-row" data-form="terminal">
-        <span class="prompt">nexus@horus:~$</span>
-        <input class="term-input" id="termInput" name="command" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal-Befehl" />
-      </form>`;
+  function termLine(line) {
+    if (line.type === "prompt") {
+      return `<div class="term-line prompt"><span class="host">nexus@horus</span><span class="path">:~/nexus_v7$</span> ${esc(line.cmd)}</div>`;
+    }
+    return `<div class="term-line ${line.type || "out"}">${esc(line.text)}</div>`;
   }
-
-  function scrollTerminal() {
-    const body = $("#terminalBody");
-    if (body) body.scrollTop = body.scrollHeight;
-  }
-
-  function terminalHelp() {
+  function terminalProcesses() {
     return [
-      { cmd: "help", desc: "Zeigt diese Befehlsübersicht." },
-      { cmd: "status", desc: "System-, Loop- und Verbindungsstatus." },
-      { cmd: "ollama list", desc: "Simulierte Liste lokaler Modelle." },
-      { cmd: "python server.py", desc: "Simulierter Start des Flask-Dashboards." },
-      { cmd: "ls / neofetch", desc: "Projektdateien und Systeminfo." },
-      { cmd: "clear", desc: "Leert das Terminal." }
+      { name: "python", cpu: 12.4, ram: "320 MB", icon: "code" },
+      { name: "ollama", cpu: 8.7, ram: "1.4 GB", icon: "brain" },
+      { name: "termux", cpu: 4.1, ram: "180 MB", icon: "terminal" },
+      { name: "node", cpu: 2.3, ram: "96 MB", icon: "grid" },
+      { name: "system", cpu: 1.8, ram: "70 MB", icon: "monitor" }
     ];
   }
 
-  /* ============ LOOP ENGINE ============ */
-  function startLoop() {
-    closeModal();
-    if (state.loop.running && !state.loop.paused) {
-      toast("Loop läuft bereits", "warn");
-      return;
-    }
-    state.loop.running = true;
-    state.loop.paused = false;
-    if (state.loop.progress >= 100) {
-      state.loop.progress = 0;
-      state.loop.phaseIndex = 0;
-    }
-    addAudit("loop", "Simulation gestartet", "loop");
-    save();
-    ensureLoopTimer();
-    refreshLoopDom();
-    updateOnlinePill();
-    toast("Loop-Simulation gestartet");
+  /* ---------------- audit ---------------- */
+  function auditGroup(type) {
+    return (AUDIT_TYPES[type] || AUDIT_TYPES.system).group;
+  }
+  function renderAudit() {
+    const filter = state.ui.auditFilter || "Alle";
+    const filterMap = { Mutation: "mutation", Notizen: "notes", System: "system", Skills: "skills" };
+    const rows = state.audit.filter((a) => filter === "Alle" || auditGroup(a.type) === filterMap[filter]);
+    return `
+      ${screenHead("clipboard", "Audit-Log", { tone: "purple", action: `<button class="btn ghost sm" data-action="audit-all">Alle anzeigen</button>` })}
+      <div class="audit-filters">
+        ${["Alle", "Mutation", "Notizen", "System", "Skills"].map((f) => `<button class="audit-filter ${filter === f ? "active" : ""}" data-action="audit-filter" data-filter="${f}">${f}</button>`).join("")}
+      </div>
+      <div class="panel"><div class="panel-body" style="padding-top:3px;padding-bottom:3px">
+        <div class="audit-list">
+          ${rows.map((a) => auditRow(a)).join("") || `<div class="empty">Keine Einträge.</div>`}
+        </div>
+      </div></div>`;
+  }
+  function auditRow(a) {
+    const meta = AUDIT_TYPES[a.type] || AUDIT_TYPES.system;
+    return `<div class="audit-row">
+      <span class="audit-time">${esc(a.time)}</span>
+      <span class="audit-icon" style="--ac:${meta.color}">${icon(meta.icon)}</span>
+      <span class="audit-type" style="--ac:${meta.color};color:${meta.color}">${esc(meta.label)}</span>
+      <span class="audit-text"><b>${esc(a.actor || "")}</b> ${esc(a.text)}</span>
+    </div>`;
   }
 
-  function pauseLoop() {
-    closeModal();
-    if (!state.loop.running) {
-      toast("Loop ist nicht aktiv", "warn");
-      return;
-    }
-    state.loop.paused = !state.loop.paused;
-    addAudit("loop", state.loop.paused ? "Simulation pausiert" : "Simulation fortgesetzt", "loop");
-    save();
-    refreshLoopDom();
-    updateOnlinePill();
-    toast(state.loop.paused ? "Loop pausiert" : "Loop fortgesetzt");
+  /* ---------------- system monitor ---------------- */
+  function renderStatus() {
+    return `
+      ${screenHead("monitor", "Systemmonitor")}
+      <div class="panel">${panelHead("activity", "Ressourcen", { right: `<span class="badge neutral">DEMO</span>` })}<div class="panel-body">${gaugeGrid(true)}</div></div>
+      <div class="panel">${panelHead("grid", "Prozesse (Top 5)")}<div class="panel-body" style="padding-top:2px">
+        <div class="process-list">${terminalProcesses().map((p) => `<div class="process-row">${icon(p.icon)}<span>${esc(p.name)}</span><span class="num">${p.cpu}%</span><span class="num">${p.ram}</span></div>`).join("")}</div>
+      </div></div>
+      <div class="monitor-duo">
+        <div class="panel">${panelHead("network", "Netzwerk")}<div class="panel-body" style="padding-top:4px">
+          <div class="net-row">${icon("upload")} Upload <b>1.2 MB/s</b></div>
+          <div class="net-row">${icon("download")} Download <b>4.8 MB/s</b></div>
+        </div></div>
+        <div class="panel">${panelHead("thermometer", "Temperatur")}<div class="panel-body" style="padding-top:4px">
+          <div class="temp-row">${icon("thermometer")} 38 °C</div>
+          <div class="temp-bar"><i></i></div>
+        </div></div>
+      </div>`;
   }
 
-  function stopLoop() {
-    closeModal();
-    state.loop.running = false;
-    state.loop.paused = false;
-    state.loop.progress = 0;
-    state.loop.phaseIndex = 0;
-    addAudit("loop", "Simulation gestoppt und zurückgesetzt", "loop");
-    save();
-    refreshLoopDom();
-    updateOnlinePill();
-    toast("Loop gestoppt");
+  /* ---------------- settings ---------------- */
+  function switchRow(label, path, checked) {
+    return `<div class="setting-item"><span>${esc(label)}</span><label class="switch"><input type="checkbox" data-toggle="${esc(path)}" ${checked ? "checked" : ""} /><span></span></label></div>`;
+  }
+  function renderSettings() {
+    const s = state.settings;
+    return `
+      ${screenHead("gear", "Einstellungen")}
+      <div class="panel">
+        <div class="settings-section">
+          <h3>Allgemein</h3>
+          <div class="settings-body">
+            <div class="setting-item"><span>Ollama URL</span><input class="input mono" value="${esc(s.ollamaUrl)}" data-setting="settings.ollamaUrl" spellcheck="false" /></div>
+            <div class="setting-item"><span>Standardmodell</span><select class="select" data-setting="settings.model">${MODELS.map((m) => `<option ${m.id === s.model ? "selected" : ""}>${esc(m.id)}</option>`).join("")}</select></div>
+            <div class="setting-item"><span>Sprache</span><select class="select" data-setting="settings.language"><option ${s.language === "Deutsch" ? "selected" : ""}>Deutsch</option><option ${s.language === "English" ? "selected" : ""}>English</option></select></div>
+            <div class="setting-item"><span>Theme</span><select class="select" data-setting="settings.theme"><option>Cyberpunk (Dark)</option><option>Plasma (Dark)</option><option>Amber (Dark)</option></select></div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Sicherheit</h3>
+          <div class="settings-body">
+            ${switchRow("Safety-Controller", "settings.safety.controller", s.safety.controller)}
+            ${switchRow("Autonomer Modus", "settings.safety.autonomous", s.safety.autonomous)}
+            ${switchRow("Code-Ausführung", "settings.safety.codeExec", s.safety.codeExec)}
+            ${switchRow("Netzwerkzugriff", "settings.safety.network", s.safety.network)}
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>System</h3>
+          <div class="settings-body">
+            <div class="setting-item"><span>Datenverzeichnis</span><input class="input mono" value="${esc(s.system.dir)}" data-setting="settings.system.dir" /></div>
+            <div class="setting-item"><span>Logs behalten (Tage)</span><select class="select" data-setting="settings.system.logs">${[7, 14, 30, 60, 90].map((n) => `<option ${n === s.system.logs ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+            ${switchRow("Automatischer Start", "settings.system.autostart", s.system.autostart)}
+          </div>
+        </div>
+      </div>`;
   }
 
-  function ensureLoopTimer() {
-    if (ui.loopTimer) return;
-    ui.loopTimer = setInterval(() => {
-      if (!state.loop.running || state.loop.paused) return;
-      const step = 1 + Math.random() * 2.2;
-      state.loop.progress = Math.min(100, state.loop.progress + step);
-      state.loop.phaseIndex = Math.min(LOOP_PHASES.length - 1, Math.floor((state.loop.progress / 100) * LOOP_PHASES.length));
-      if (state.loop.progress >= 100) {
-        const completed = state.loop.cycle;
-        state.loop.cycle = state.loop.cycle >= state.loop.total ? 1 : state.loop.cycle + 1;
-        state.loop.progress = 0;
-        state.loop.phaseIndex = 0;
-        addAudit("loop", `Zyklus ${completed} abgeschlossen · nächster Zyklus ${state.loop.cycle}`, "loop");
-        toast(`Zyklus ${completed} abgeschlossen (Simulation)`);
-      }
-      save();
-      refreshLoopDom();
-    }, 1200);
+  /* ---------------- menu ---------------- */
+  function renderMenu() {
+    const items = [
+      { route: "agents", icon: "agent", label: "Agenten", desc: "8 Profile", color: "#2bd7ff" },
+      { route: "models", icon: "brain", label: "KI-Modelle", desc: "Ollama Routing", color: "#a96bff" },
+      { route: "mutation", icon: "skills", label: "Skill-Mutation", desc: "Skills verbessern", color: "#c45bff" },
+      { route: "tasks", icon: "check-circle", label: "To-Do Tafel", desc: "6 Aufgaben", color: "#ff6f9c" },
+      { route: "terminal", icon: "terminal", label: "Terminal", desc: "HORUS Linux", color: "#2bd7ff" },
+      { route: "audit", icon: "clipboard", label: "Audit-Log", desc: `${state.audit.length} Einträge`, color: "#b25cff" },
+      { route: "status", icon: "monitor", label: "Systemmonitor", desc: "Ressourcen", color: "#35d2ff" },
+      { route: "settings", icon: "gear", label: "Einstellungen", desc: "Konfiguration", color: "#62b7ff" }
+    ];
+    return `
+      ${screenHead("menu-dots", "Menü")}
+      <div class="menu-grid">
+        ${items.map((i) => `<a class="menu-item" href="#/${i.route}" style="--c:${i.color}">
+          <span class="menu-icon">${icon(i.icon)}</span>
+          <span><strong>${i.label}</strong><small>${i.desc}</small></span>
+          <span class="chev">${icon("chevron")}</span>
+        </a>`).join("")}
+      </div>
+      <div class="panel">${panelHead("shield", "Systemstatus", { right: `<span class="badge green"><span class="dot live"></span> Online</span>` })}<div class="panel-body">
+        <div class="status-info">
+          <div>${icon("cpu")} Host: HORUS Linux · Termux</div>
+          <div>${icon("brain")} Agenten: 8 Profile · 8 Online</div>
+          <div>${icon("loop")} Loop: Zyklus ${state.loop.cycle} / ${state.loop.total}</div>
+        </div>
+      </div></div>`;
   }
 
-  function refreshLoopDom() {
-    const loop = state.loop;
-    const pct = Math.max(0, Math.min(100, loop.progress));
-    const C = 2 * Math.PI * 74;
-    const ring = $("#loopRingProgress");
-    if (ring) {
-      ring.setAttribute("stroke-dashoffset", (C * (1 - pct / 100)).toFixed(1));
-      ring.setAttribute("stroke-dasharray", C.toFixed(1));
-    }
-    const pctEl = $("#loopPct");
-    if (pctEl) pctEl.textContent = `${Math.round(pct)} %`;
-    const cycleEl = $("#loopCycle");
-    if (cycleEl) cycleEl.textContent = `Zyklus ${loop.cycle} / ${loop.total}`;
-    const stateEl = $("#loopState");
-    if (stateEl) stateEl.textContent = loop.running ? (loop.paused ? "Pausiert" : "Simulation") : "Bereit";
-    const stepsEl = $("#loopSteps");
-    if (stepsEl) stepsEl.innerHTML = LOOP_PHASES.map((phase, i) => loopStep(phase, i, loop)).join("");
-    const logEl = $("#loopLog");
-    if (logEl) logEl.innerHTML = loopLogStages(loop);
-    const bannerEl = $("#loopBanner");
-    if (bannerEl) bannerEl.innerHTML = loopBanner(loop);
-    const consoleBadge = $("#loopConsoleBadge");
-    if (consoleBadge) {
-      consoleBadge.className = `badge ${loop.running ? (loop.paused ? "orange" : "green") : ""}`;
-      consoleBadge.innerHTML = `<span class="dot"></span> ${loop.running ? (loop.paused ? "Pausiert" : "Loop läuft") : "Autonomous Loop"}`;
-    }
-    const focusEl = $(".task-focus");
-    if (focusEl) {
-      const probe = document.createElement("div");
-      probe.innerHTML = focusTaskPanel();
-      focusEl.replaceWith(probe.firstElementChild);
-    }
-  }
-
-  /* ============ OLLAMA CONNECTION ============ */
-  async function testConnection() {
-    if (ui.connectionTesting) return;
-    ui.connectionTesting = true;
-    const url = cleanUrl(state.settings.ollamaUrl);
-    toast("Prüfe Ollama-Verbindung…");
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    try {
-      const response = await fetch(`${url}/api/tags`, { signal: controller.signal, headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const models = (data.models || []).map((m) => ({
-        name: m.name,
-        size: typeof m.size === "number" ? formatBytes(m.size) : m.size || "—",
-        installed: true
-      }));
-      state.connection = { status: "ok", checkedAt: Date.now(), models: models.length ? models : DEMO_MODELS };
-      addAudit("system", `Ollama verbunden · ${state.connection.models.length} Modelle`, "system");
-      toast("Ollama-Verbindung erfolgreich");
-    } catch (error) {
-      state.connection = { status: "error", checkedAt: Date.now(), models: DEMO_MODELS, error: String(error?.message || error) };
-      addAudit("system", "Ollama nicht erreichbar · Demo-Modus aktiv", "system");
-      toast("Ollama nicht erreichbar – Demo-Modus aktiv", "err");
-    } finally {
-      clearTimeout(timeout);
-      ui.connectionTesting = false;
-      save();
-      if (getRoute() === "models" || getRoute() === "chat" || getRoute() === "settings") renderRoute();
-      else updateOnlinePill();
-    }
-  }
-
-  function formatBytes(bytes) {
-    if (!Number.isFinite(bytes)) return "—";
-    const units = ["B", "KB", "MB", "GB", "TB"];
-    let value = bytes;
-    let i = 0;
-    while (value >= 1024 && i < units.length - 1) { value /= 1024; i++; }
-    return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
-  }
-
-  /* ============ CHAT LOGIC ============ */
-  async function sendChat(rawText) {
-    const text = String(rawText || "").trim();
-    if (!text || ui.chatTyping) return;
-    const input = $("#chatInput");
-    if (input) input.value = "";
-    state.chat.messages.push({ id: uid("m"), role: "user", text, time: clockNow() });
-    save();
-    ui.chatTyping = true;
-    refreshChat();
-
-    const agent = chatAgent();
-    let reply;
-    let demo = false;
-    let model = state.settings.model;
-    if (state.connection.status === "ok") {
-      try {
-        const response = await fetch(`${cleanUrl(state.settings.ollamaUrl)}/api/generate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model,
-            prompt: text,
-            stream: false,
-            system: `Du bist ${agent ? agent.name : "NEXUS CLAW"}, ein lokaler KI-Agent im Hybrid AI Office. Antworte präzise auf Deutsch. Führe keine Codeänderungen aus.`
-          })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        reply = String(data.response || "").trim();
-        if (!reply) throw new Error("Leere Antwort");
-      } catch (error) {
-        demo = true;
-        reply = demoReply(text, agent);
-        addAudit("chat", `Ollama-Antwort fehlgeschlagen · Demo verwendet`, "chat");
-        save();
-      }
-    } else {
-      demo = true;
-      await new Promise((resolve) => setTimeout(resolve, 700 + Math.random() * 500));
-      reply = demoReply(text, agent);
-    }
-
-    ui.chatTyping = false;
-    state.chat.messages.push({ id: uid("m"), role: "assistant", text: reply, time: clockNow(), demo, model: demo ? "" : model });
-    save();
-    addAudit("chat", `Anfrage an ${model}`, agent?.name || "NEXUS");
-    refreshChat();
-  }
-
-  function demoReply(prompt, agent) {
-    const name = agent?.name || "NEXUS";
-    const p = prompt.toLowerCase();
-    if (/hallo|hi\b|hey|moin|servus/.test(p)) {
-      return `${name} hier. Der Chat läuft im Demo-Modus, weil keine aktive Ollama-Verbindung erkannt wurde.\n\nIch kann dir trotzdem helfen, Aufgaben zu strukturieren. Prüfe in der Modellzentrale die Adresse ${state.settings.ollamaUrl} und starte Ollama mit \`OLLAMA_ORIGINS=*\` für Browser-Zugriff.`;
-    }
-    if (/test|prüf|verify/.test(p)) {
-      return `Testplan (Demo)\n\n1. Ziel und Akzeptanzkriterien festhalten.\n2. Kleinsten reproduzierbaren Fall isolieren.\n3. Positiv- und Negativfälle prüfen.\n4. Ergebnis im Audit-Protokoll dokumentieren.\n\nHinweis: Dies ist eine simulierte Antwort. Für echte Modellantworten muss Ollama erreichbar sein.`;
-    }
-    if (/code|bug|fehler|refactor|funktion/.test(p)) {
-      return `Analyse (Demo)\n\n• Änderung zuerst als kleinen, prüfbaren Diff planen.\n• Bestehende Tests vor der Änderung ausführen.\n• Fehlerursache dokumentieren, nicht nur Symptome beheben.\n• Freigabe einholen, bevor Code ausgeführt wird.\n\nBeispiel:\n\`\`\`python\ndef health():\n    return {"status": "ok"}\n\`\`\`\n\nDemo-Modus: Es wurde kein Modell aufgerufen.`;
-    }
-    if (/loop|zyklus/.test(p)) {
-      return `Der Entwicklungs-Loop ist im Prototyp eine Simulation mit sieben Phasen: Analyse, Planung, Entwicklung, Tests, Fehlerbehebung, Dokumentation und Lernen.\n\nStart, Pause und Stop speichern nur einen Steuerzustand. Echte Codeänderungen, Sandbox-Ausführung und Testautomatisierung sind noch nicht implementiert.`;
-    }
-    return `Anfrage aufgenommen (Demo):\n\n„${prompt.slice(0, 220)}${prompt.length > 220 ? "…" : ""}“\n\nIch bin ${name}. Ohne erreichbare Ollama-Instanz kann ich keine echte Modellantwort erzeugen. Die Anfrage wurde lokal gespeichert und als Demo gekennzeichnet.`;
-  }
-
-  /* ============ MODALS ============ */
-  function openModal({ title, eyebrow = "NEXUS CLAW", body, footer = "", wide = false }) {
-    ui.modalReturnFocus = document.activeElement;
-    $("#modalTitle").textContent = title;
+  /* ---------------- modals ---------------- */
+  function openModal({ title, eyebrow = "NEXUS V7", body = "", footer = "", wide = false }) {
+    ui.lastFocus = document.activeElement;
     $("#modalEyebrow").textContent = eyebrow;
+    $("#modalTitle").textContent = title;
     $("#modalBody").innerHTML = body;
     $("#modalFoot").innerHTML = footer;
-    const modal = $(".modal");
-    if (modal) modal.style.width = wide ? "min(720px, 100%)" : "";
     $("#modalLayer").hidden = false;
     document.body.style.overflow = "hidden";
-    setTimeout(() => {
-      const focusable = $("#modalBody input, #modalBody select, #modalBody textarea, #modalFoot button");
-      if (focusable) focusable.focus();
-    }, 40);
+    const modal = $(".modal");
+    if (modal) modal.style.width = wide ? "min(100%, 470px)" : "";
+    setTimeout(() => { const first = $("#modalBody input, #modalBody select, #modalBody textarea, #modalFoot button"); if (first) first.focus({ preventScroll: true }); }, 30);
   }
-
   function closeModal() {
     $("#modalLayer").hidden = true;
     document.body.style.overflow = "";
-    if (ui.modalReturnFocus && typeof ui.modalReturnFocus.focus === "function") {
-      ui.modalReturnFocus.focus();
-    }
-    ui.modalReturnFocus = null;
+    if (ui.lastFocus && typeof ui.lastFocus.focus === "function") ui.lastFocus.focus({ preventScroll: true });
+    ui.lastFocus = null;
   }
-
-  function agentOptions(selected = "rick") {
-    return AGENT_SEED.map((a) => `<option value="${a.id}" ${a.id === selected ? "selected" : ""}>${esc(a.name)} · ${esc(a.role)}</option>`).join("");
-  }
-
-  function openTaskModal(agentId = "rick", task = null) {
-    const isEdit = !!task;
+  function openTaskModal() {
     openModal({
-      title: isEdit ? "Aufgabe bearbeiten" : "Neue Aufgabe",
-      eyebrow: "AUFGABENVERWALTUNG",
+      title: "Neue Aufgabe",
+      eyebrow: "TO-DO TAFEL",
       body: `<form data-form="task" id="taskForm">
+        <div class="form-field"><label for="taskTitle">Titel</label><input class="input" id="taskTitle" name="title" required placeholder="Was soll erledigt werden?" /></div>
         <div class="form-grid">
-          <div class="field full"><label for="taskTitle">Titel</label><input class="input" id="taskTitle" name="title" required maxlength="120" value="${esc(task?.title || "")}" placeholder="Was soll erledigt werden?" /></div>
-          <div class="field"><label for="taskPriority">Priorität</label><select class="select" id="taskPriority" name="priority">
-            ${["hoch", "mittel", "niedrig"].map((p) => `<option value="${p}" ${task?.priority === p ? "selected" : ""}>${p[0].toUpperCase() + p.slice(1)}</option>`).join("")}
-          </select></div>
-          <div class="field"><label for="taskAgent">Agent</label><select class="select" id="taskAgent" name="agent">${agentOptions(task?.agent || agentId)}</select></div>
-          <div class="field"><label for="taskProject">Projekt</label><select class="select" id="taskProject" name="project">
-            ${state.projects.map((p) => `<option value="${esc(p.name)}" ${task?.project === p.name ? "selected" : ""}>${esc(p.name)}</option>`).join("")}
-          </select></div>
-          <div class="field"><label for="taskDue">Fällig</label><input class="input" type="date" id="taskDue" name="due" value="${esc(task?.due || new Date().toISOString().slice(0, 10))}" /></div>
+          <div class="form-field"><label for="taskPriority">Priorität</label><select class="select" id="taskPriority" name="priority"><option value="hoch">Hoch</option><option value="mittel" selected>Mittel</option><option value="niedrig">Niedrig</option></select></div>
+          <div class="form-field"><label for="taskAgent">Agent</label><select class="select" id="taskAgent" name="agent">${AGENTS.map((a) => `<option value="${a.id}">${esc(a.name)} (${a.code})</option>`).join("")}</select></div>
+          <div class="form-field full"><label for="taskDue">Fällig</label><input class="input" id="taskDue" name="due" type="date" value="${todayISO()}" /></div>
         </div>
       </form>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="taskForm">${isEdit ? "Speichern" : "Anlegen"}</button>`,
-      wide: true
+      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="taskForm">${icon("plus")} Anlegen</button>`
     });
-    if (isEdit) $("#taskForm").dataset.edit = task.id;
   }
-
-  function openNoteModal(note = null) {
-    openModal({
-      title: note ? "Notiz bearbeiten" : "Neue Notiz",
-      eyebrow: "LOCALSTORAGE",
-      body: `<form data-form="note" id="noteForm">
-        <div class="field"><label for="noteTitle">Titel</label><input class="input" id="noteTitle" name="title" required maxlength="100" value="${esc(note?.title || "")}" placeholder="Titel der Notiz" /></div>
-        <div class="field" style="margin-top:12px"><label for="noteBody">Inhalt</label><textarea class="textarea" id="noteBody" name="body" rows="7" placeholder="Gedanken, Befehle, Entscheidungen…">${esc(note?.body || "")}</textarea></div>
-        <div class="field" style="margin-top:12px"><label for="noteAccent">Akzent</label><select class="select" id="noteAccent" name="accent">
-          <option value="#8dff48" ${note?.accent === "#8dff48" ? "selected" : ""}>Grün</option>
-          <option value="#31d8ff" ${note?.accent === "#31d8ff" ? "selected" : ""}>Cyan</option>
-          <option value="#b379ff" ${note?.accent === "#b379ff" ? "selected" : ""}>Violett</option>
-          <option value="#ffa53c" ${note?.accent === "#ffa53c" ? "selected" : ""}>Orange</option>
-        </select></div>
-      </form>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="noteForm">${note ? "Speichern" : "Anlegen"}</button>`
-    });
-    if (note) $("#noteForm").dataset.edit = note.id;
-  }
-
   function openProjectModal() {
     openModal({
       title: "Neues Projekt",
-      eyebrow: "ARBEITSBEREICHE",
+      eyebrow: "PROJEKTE",
       body: `<form data-form="project" id="projectForm">
+        <div class="form-field"><label for="projectName">Name</label><input class="input" id="projectName" name="name" required placeholder="Projektname" /></div>
         <div class="form-grid">
-          <div class="field full"><label for="projectName">Name</label><input class="input" id="projectName" name="name" required maxlength="80" placeholder="Projektname" /></div>
-          <div class="field"><label for="projectType">Typ</label><input class="input" id="projectType" name="type" placeholder="z. B. Python / Web" /></div>
-          <div class="field"><label for="projectStatus">Status</label><select class="select" id="projectStatus" name="status"><option>Aktiv</option><option>In Arbeit</option><option>Pause</option><option>Archiv</option></select></div>
-          <div class="field full"><label for="projectDesc">Beschreibung</label><input class="input" id="projectDesc" name="desc" maxlength="160" placeholder="Kurzbeschreibung" /></div>
+          <div class="form-field"><label for="projectType">Typ</label><input class="input" id="projectType" name="type" value="Android / Python" /></div>
+          <div class="form-field"><label for="projectStatus">Status</label><select class="select" id="projectStatus" name="status"><option>Aktiv</option><option>In Arbeit</option><option>Pause</option><option>Archiv</option></select></div>
         </div>
       </form>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="projectForm">Anlegen</button>`,
-      wide: true
+      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="projectForm">${icon("plus")} Anlegen</button>`
     });
   }
-
-  function openModelModal() {
-    openModal({
-      title: "Neues Modell",
-      eyebrow: "MODELLZENTRALE",
-      body: `<form data-form="model" id="modelForm">
-        <div class="form-grid">
-          <div class="field full"><label for="modelName">Modellname</label><input class="input mono" id="modelName" name="name" required placeholder="z. B. mistral:7b" /></div>
-          <div class="field"><label for="modelKind">Typ</label><select class="select" id="modelKind" name="kind"><option>Ollama</option><option>OpenAI-kompatibel</option><option>Lokal</option><option>Custom</option></select></div>
-          <div class="field"><label for="modelBase">Basis-URL</label><input class="input mono" id="modelBase" name="base" placeholder="http://127.0.0.1:11434" /></div>
-          <div class="field full"><label for="modelNote">Notiz</label><input class="input" id="modelNote" name="note" placeholder="Verwendungszweck (optional)" /></div>
-        </div>
-        <p class="field-hint" style="margin-top:10px">Modelle werden lokal registriert. Installation und Download erfolgen außerhalb des Prototyps über <span class="mono">ollama pull</span>.</p>
-      </form>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="modelForm">Hinzufügen</button>`,
-      wide: true
-    });
-  }
-
-  function openLaunchModal(providerId) {
-    const provider = PROVIDERS.find((p) => p.id === providerId) || PROVIDERS[0];
-    const model = MODEL_SEED.find((m) => m.id === providerId);
-    openModal({
-      title: `${provider.name} starten`,
-      eyebrow: "AGENT STARTEN",
-      body: `<form data-form="launch" id="launchForm" data-provider="${provider.id}">
-        <div class="row" style="gap:12px">
-          <span class="launch-icon" style="--accent:${provider.accent};width:46px;height:46px">${icon(provider.icon)}</span>
-          <div><strong style="font-size:15px">${esc(provider.name)}</strong><div class="small muted">${esc(provider.sub)}</div></div>
-          <span class="badge green" style="margin-left:auto">Bereit</span>
-        </div>
-        <hr class="hr" />
-        <div class="form-grid">
-          <div class="field"><label for="launchAgent">Agent-Profil</label><select class="select" id="launchAgent" name="agent">${agentOptions(provider.agent)}</select></div>
-          <div class="field"><label for="launchModel">Modell</label><select class="select" id="launchModel" name="model">${modelChoices().map((m) => `<option value="${esc(m.name)}" ${m.name === (model?.model || state.settings.model) ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select></div>
-          <div class="field full"><label for="launchTask">Startauftrag</label><input class="input" id="launchTask" name="task" value="${esc(AGENT_SEED.find((a) => a.id === provider.agent)?.task || "")}" /></div>
-        </div>
-        <p class="field-hint" style="margin-top:11px">Der Prototyp startet eine simulierte Sitzung. Es werden keine Prozesse ausgeführt und keine Dateien verändert.</p>
-      </form>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="launchForm">${icon("play")} Sitzung starten</button>`,
-      wide: true
-    });
-  }
-
-  function openSessionModal(id) {
-    const session = state.sessions.find((s) => s.id === id);
-    if (!session) return;
-    const agent = AGENT_SEED.find((a) => session.name.toLowerCase().includes(a.name.toLowerCase()));
-    openModal({
-      title: session.name,
-      eyebrow: "SITZUNG · MANAGE",
-      body: `<div class="row" style="gap:12px">
-          <span class="session-dot ${session.status === "Läuft" ? "" : "idle"}" style="width:11px;height:11px"></span>
-          <div><strong>${esc(session.status)}</strong><div class="small muted">Gestartet ${esc(session.started)} · Simulation</div></div>
-          <span class="badge ${session.status === "Läuft" ? "green" : ""}" style="margin-left:auto">${esc(session.status)}</span>
-        </div>
-        <hr class="hr" />
-        <div class="session-detail-grid">
-          <div class="panel pad"><div class="small muted">Agent</div><strong>${esc(agent?.name || "NEXUS")}</strong></div>
-          <div class="panel pad"><div class="small muted">Modell</div><strong>${esc(state.settings.model)}</strong></div>
-        </div>
-        <div class="manage-actions">
-          <button class="btn" data-action="open-terminal">${icon("terminal")} Terminal</button>
-          <button class="btn" data-action="open-chat">${icon("chat")} Chat</button>
-        </div>
-        <p class="field-hint" style="margin-top:10px">Sitzungen sind simulierte Einträge. Es laufen keine echten Prozesse.</p>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Schließen</button><button class="btn danger" data-action="end-session" data-session="${session.id}">${icon("stop")} Sitzung beenden</button>`
-    });
-  }
-
-  function endSession(id) {
-    const session = state.sessions.find((s) => s.id === id);
-    if (!session) return;
-    state.sessions = state.sessions.filter((s) => s.id !== id);
-    addAudit("system", `Sitzung beendet: ${session.name}`, "session");
-    save();
-    closeModal();
-    renderRoute();
-    toast(`Sitzung beendet: ${session.name}`);
-  }
-
-  function openLoopMenu() {
-    const loop = state.loop;
-    openModal({
-      title: "Autonomous Loop",
-      eyebrow: "LOOP · STEUERUNG",
-      body: `<div class="row" style="gap:12px">
-          <span class="badge ${loop.running ? (loop.paused ? "orange" : "green") : ""}"><span class="dot"></span> ${loop.running ? (loop.paused ? "Pausiert" : "Läuft") : "Bereit"}</span>
-          <span class="mono small" style="margin-left:auto">Zyklus ${loop.cycle}/${loop.total} · ${Math.round(loop.progress)}%</span>
-        </div>
-        <div class="loop-menu-actions">
-          <button class="btn primary" data-action="loop-start">${icon("play")} Start</button>
-          <button class="btn" data-action="loop-pause">${icon("pause")} ${loop.paused ? "Fortsetzen" : "Pause"}</button>
-          <button class="btn danger" data-action="loop-stop">${icon("stop")} Stop</button>
-        </div>
-        <p class="field-hint" style="margin-top:12px">Die Simulation verändert keine Dateien. Jede Aktion wird lokal im Audit-Protokoll gespeichert.</p>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Schließen</button>`
-    });
-  }
-
   function openProjectDetail(id) {
     const p = state.projects.find((x) => x.id === id);
     if (!p) return;
     openModal({
       title: p.name,
       eyebrow: "PROJEKTDETAILS",
-      body: `<div class="row" style="gap:12px"><span class="project-icon" style="--accent:${p.accent};width:46px;height:46px">${icon(p.icon)}</span><div><strong>${esc(p.type)}</strong><div class="small muted">${esc(p.language)}</div></div><span class="badge ${p.status === "Aktiv" ? "green" : p.status === "In Arbeit" ? "orange" : ""}" style="margin-left:auto">${esc(p.status)}</span></div>
-        <p class="field-hint" style="margin-top:14px">${esc(p.desc)}</p>
+      body: `<div class="between" style="margin-bottom:9px">
+          <span class="project-icon" style="--c1:${p.c1};--c2:${p.c2};width:46px;height:46px">${icon(p.icon)}</span>
+          <span class="grow" style="margin-left:9px"><strong style="font-size:13px">${esc(p.type)}</strong><div class="hint">${esc(p.desc)}</div></span>
+          <span class="badge ${p.status === "Aktiv" ? "green" : p.status === "In Arbeit" ? "orange" : p.status === "Pause" ? "red" : "neutral"}">${esc(p.status)}</span>
+        </div>
         <hr class="hr" />
-        <div class="between"><span class="small muted">Fortschritt</span><span class="mono small">${p.progress}%</span></div>
-        <div class="project-progress" style="--accent:${p.accent}"><i style="width:${p.progress}%"></i></div>
-        <div class="grid" style="margin-top:14px;grid-template-columns:1fr 1fr">
-          <div class="panel pad"><div class="small muted">Zuletzt geändert</div><strong>${esc(formatDate(p.updated))}</strong></div>
-          <div class="panel pad"><div class="small muted">Offene Aufgaben</div><strong>${state.tasks.filter((t) => t.project === p.name && t.status !== "erledigt").length}</strong></div>
+        <div class="between"><span class="hint">Fortschritt</span><span class="mono small">${p.progress}%</span></div>
+        <div class="cycle-bar" style="margin-top:5px"><i style="width:${p.progress}%"></i></div>
+        <div class="form-grid" style="margin-top:10px">
+          <div class="stat-box"><b style="font-size:12px">${formatDate(p.updated)}</b><small>GEÄNDERT</small></div>
+          <div class="stat-box"><b style="font-size:12px">${state.tasks.filter((t) => t.status !== "erledigt").length}</b><small>OFFENE TASKS</small></div>
         </div>`,
       footer: `<button class="btn ghost" data-action="close-modal">Schließen</button><button class="btn primary" data-action="project-task" data-project="${p.id}">${icon("plus")} Aufgabe</button>`
     });
   }
-
-  function openFileModal(id) {
-    const f = LIBRARY_SEED.find((x) => x.id === id);
-    if (!f) return;
+  function openSkillModal(agentId) {
+    const a = agentById(agentId) || AGENTS[0];
     openModal({
-      title: f.name,
-      eyebrow: "BIBLIOTHEK · READ ONLY",
-      body: `<div class="row"><span class="project-icon" style="--accent:${f.accent}">${icon(f.icon)}</span><div><strong>${esc(f.type)}</strong><div class="small muted">${esc(f.project)} · ${esc(f.size)}</div></div><span class="badge cyan" style="margin-left:auto">${icon("lock")} Read only</span></div>
-        <div class="terminal-wrap" style="margin-top:14px"><div class="terminal-head"><strong>Vorschau</strong><span class="badge">${esc(f.type)}</span></div><div class="terminal-body" style="height:200px">${filePreview(f)}</div></div>
-        <p class="field-hint" style="margin-top:10px">Die Datei ist im Prototyp nicht lesbar. Diese Vorschau ist ein statischer Platzhalter.</p>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Schließen</button>`
+      title: "Neuen Skill hinzufügen",
+      eyebrow: `${a.name.toUpperCase()} · ${a.code}`,
+      body: `<form data-form="skill" id="skillForm" data-agent="${a.id}">
+        <div class="form-field"><label for="skillName">Skill-Name</label><input class="input" id="skillName" name="name" required placeholder="z. B. Zeitreise-Logik" /></div>
+        <div class="form-field"><label for="skillDesc">Beschreibung</label><textarea class="textarea" id="skillDesc" name="desc" style="min-height:62px"></textarea></div>
+        <div class="form-field"><label for="skillLevel">Startlevel</label><input class="input" id="skillLevel" name="level" type="number" min="1" max="10" value="1" /></div>
+      </form>`,
+      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn purple" type="submit" form="skillForm">${icon("plus")} Hinzufügen</button>`
     });
   }
 
-  function filePreview(f) {
-    if (f.type === "Python") return `<div class="term-line dim"># ${f.name}</div><div class="term-line"><span class="cyan">from</span> flask <span class="cyan">import</span> Flask</div><div class="term-line">app = Flask(__name__)</div><div class="term-line"></div><div class="term-line">@app.get(<span class="yellow">"/api/status"</span>)</div><div class="term-line"><span class="cyan">def</span> status():</div><div class="term-line">    <span class="cyan">return</span> {<span class="yellow">"ok"</span>: <span class="cyan">True</span>}</div>`;
-    if (f.type === "C#") return `<div class="term-line dim">// ${f.name}</div><div class="term-line"><span class="cyan">public class</span> GameLogic : MonoBehaviour</div><div class="term-line">{</div><div class="term-line">    <span class="cyan">void</span> Update() { }</div><div class="term-line">}</div>`;
-    if (f.type === "Bash") return `<div class="term-line dim">#!/usr/bin/env bash</div><div class="term-line">set -euo pipefail</div><div class="term-line">echo <span class="yellow">"Horus Tools"</span></div>`;
-    if (f.type === "Markdown") return `<div class="term-line cyan"># ${f.name}</div><div class="term-line dim">Dokumentation · ${f.project}</div><div class="term-line">- Lokale Verarbeitung bevorzugen.</div><div class="term-line">- Änderungen vor Ausführung prüfen.</div>`;
-    return `<div class="term-line dim">&lt;${esc(f.type)}-Vorschau nicht verfügbar&gt;</div>`;
+  /* ---------------- loop engine ---------------- */
+  function startLoop() {
+    if (state.loop.running && !state.loop.paused) { toast("Loop läuft bereits", "warn"); return; }
+    state.loop.running = true;
+    state.loop.paused = false;
+    if (state.loop.progress >= 100) { state.loop.progress = 0; state.loop.completed = 0; state.loop.elapsed = 0; }
+    addAudit("system", "Loop", "Simulation gestartet");
+    save();
+    ensureLoopTimer();
+    updateLoopUI();
+    toast("Entwicklungsloop gestartet");
+  }
+  function pauseLoop() {
+    if (!state.loop.running) { toast("Loop ist nicht aktiv", "warn"); return; }
+    state.loop.paused = !state.loop.paused;
+    addAudit("system", "Loop", state.loop.paused ? "pausiert" : "fortgesetzt");
+    save();
+    updateLoopUI();
+    toast(state.loop.paused ? "Loop pausiert" : "Loop fortgesetzt");
+  }
+  function stopLoop() {
+    state.loop.running = false;
+    state.loop.paused = false;
+    state.loop.progress = 0;
+    state.loop.completed = 0;
+    state.loop.elapsed = 0;
+    addAudit("system", "Loop", "gestoppt und zurückgesetzt");
+    save();
+    updateLoopUI();
+    renderRoute();
+    toast("Loop gestoppt");
+  }
+  function ensureLoopTimer() {
+    if (ui.timer) return;
+    ui.timer = setInterval(() => {
+      const loop = state.loop;
+      if (!loop.running || loop.paused) return;
+      loop.progress = Math.min(100, loop.progress + 1.2 + Math.random() * 2.2);
+      loop.completed = Math.max(loop.completed, Math.min(LOOP_PHASES.length, Math.floor((loop.progress / 100) * LOOP_PHASES.length)));
+      loop.elapsed += 1.2 * (Number(loop.interval) || 5) / 5;
+      const phase = LOOP_PHASES[Math.min(LOOP_PHASES.length - 1, loop.completed)];
+      loop.phase = phase;
+      loop.lastAction = phase === "Tests" ? "Testlauf" : phase === "Freigabe" ? "Safety-Check" : phase;
+      loop.nextAction = LOOP_PHASES[Math.min(LOOP_PHASES.length - 1, loop.completed + 1)];
+      if (loop.progress >= 100) {
+        const completedCycle = loop.cycle;
+        loop.cycle = loop.cycle >= loop.total ? 1 : loop.cycle + 1;
+        loop.progress = 0;
+        loop.completed = 0;
+        loop.elapsed = 0;
+        addAudit("system", "Loop", `Zyklus ${completedCycle} abgeschlossen`);
+        toast(`Zyklus ${completedCycle} abgeschlossen`);
+      }
+      save();
+      updateLoopUI();
+    }, 1200);
+  }
+  function updateLoopUI() {
+    const loop = state.loop;
+    const c = 2 * Math.PI * 63;
+    const ring = $("#loopRingProg");
+    if (ring) ring.setAttribute("stroke-dashoffset", (c * (1 - loop.progress / 100)).toFixed(1));
+    const pct = $("#loopPctText");
+    if (pct) pct.textContent = `${Math.round(loop.progress)}%`;
+    const phaseList = $("#loopPhaseList");
+    if (phaseList) phaseList.innerHTML = loopPhaseList();
+    const phaseEl = $("#loopStatusPhase");
+    if (phaseEl) phaseEl.textContent = LOOP_PHASES[Math.min(LOOP_PHASES.length - 1, loop.completed)] || "Analyse";
+    const lastEl = $("#loopLastAction");
+    if (lastEl) lastEl.textContent = loop.lastAction;
+    const nextEl = $("#loopNextAction");
+    if (nextEl) nextEl.textContent = loop.nextAction;
+    const elapsedEl = $("#loopElapsed");
+    if (elapsedEl) elapsedEl.textContent = formatElapsed(loop.elapsed);
+    const dashBar = $("#dashLoopBar");
+    if (dashBar) dashBar.style.width = `${loop.progress}%`;
+    const dashPct = $("#dashLoopPct");
+    if (dashPct) dashPct.textContent = `${Math.round(loop.progress)}%`;
+    const dashPhases = $("#dashPhases");
+    if (dashPhases) dashPhases.innerHTML = dashboardPhases();
   }
 
-  function openSearchModal() {
-    openModal({
-      title: "Suche",
-      eyebrow: "NEXUS CLAW",
-      body: `<div class="search-box" style="width:100%">${icon("search")}<input type="search" id="searchModalInput" placeholder="Bereiche, Aufgaben, Notizen, Projekte…" aria-label="Suche" autocomplete="off" /></div><div id="searchResults" style="margin-top:14px"></div>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Schließen</button>`,
-      wide: true
-    });
-    renderSearchResults("");
-    setTimeout(() => { $("#searchModalInput")?.focus(); }, 50);
+  /* ---------------- ollama ---------------- */
+  async function testConnection() {
+    if (ui.connectionBusy) return;
+    ui.connectionBusy = true;
+    toast("Prüfe Ollama-Verbindung…");
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      const res = await fetch(`${state.settings.ollamaUrl.replace(/\/$/, "")}/api/tags`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      state.connection = { status: "ok", checkedAt: Date.now(), models: Array.isArray(data.models) ? data.models.map((m) => m.name) : [] };
+      addAudit("system", "Ollama", `verbunden · ${state.connection.models.length} Modelle`);
+      toast("Ollama-Verbindung erfolgreich");
+    } catch {
+      state.connection = { status: "error", checkedAt: Date.now(), models: [] };
+      addAudit("system", "Ollama", "nicht erreichbar · Demo-Modus");
+      toast("Ollama nicht erreichbar – Demo-Modus", "warn");
+    } finally {
+      clearTimeout(timer);
+      ui.connectionBusy = false;
+      save();
+      if (["models", "home"].includes(getRoute())) renderRoute();
+    }
+  }
+  async function sendModelTest() {
+    const prompt = state.modelTest.prompt.trim();
+    if (!prompt) { toast("Bitte eine Frage eingeben", "warn"); return; }
+    const answerEl = $("#modelAnswer");
+    if (answerEl) answerEl.textContent = "Denke nach …";
+    if (state.connection.status === "ok") {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      try {
+        const res = await fetch(`${state.settings.ollamaUrl.replace(/\/$/, "")}/api/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: state.modelTest.model || state.settings.model, prompt, stream: false }),
+          signal: ctrl.signal
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.response) {
+          state.modelTest.answer = data.response.trim();
+          clearTimeout(timer);
+          save();
+          if (answerEl) answerEl.textContent = state.modelTest.answer;
+          toast("Antwort empfangen");
+          return;
+        }
+      } catch { /* fall through to demo */ }
+      clearTimeout(timer);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    state.modelTest.answer = demoAnswer(prompt);
+    addAudit("system", "Ollama", "Demo-Antwort erzeugt");
+    save();
+    if (answerEl) answerEl.textContent = state.modelTest.answer;
+    toast("Demo-Antwort erzeugt");
+  }
+  function demoAnswer(prompt) {
+    const base = "NEXUS V7 ist ein lokales KI-Büro für Android, das mehrere spezialisierte KI-Agenten mit Ollama-Modellen verbindet, um Projekte autonom zu planen, zu entwickeln, zu testen und zu verbessern.";
+    if (/loop|zyklus/i.test(prompt)) return `${base}\n\nDer Entwicklungsloop arbeitet in sieben Phasen: Analyse, Planung, Freigabe, Entwicklung, Tests, Fehlerbehebung und Lernen. Jede Phase wird lokal protokolliert.`;
+    return base;
   }
 
-  function searchIndex() {
-    const items = Object.entries(ROUTES).map(([key, meta]) => ({ label: meta.title, sub: meta.sub, href: `#/${key}`, ic: NAV_ICONS[key], kind: "Bereich" }));
-    state.tasks.forEach((t) => items.push({ label: t.title, sub: `Aufgabe · ${agentById(t.agent)?.name || "–"} · ${t.priority}`, href: "#/tasks", ic: "check-square", kind: "Aufgabe" }));
-    state.notes.forEach((n) => items.push({ label: n.title, sub: `Notiz · ${relativeTime(n.updated)}`, href: "#/notes", ic: "note", kind: "Notiz" }));
-    state.projects.forEach((p) => items.push({ label: p.name, sub: `Projekt · ${p.status} · ${p.type}`, href: "#/projects", ic: p.icon, kind: "Projekt" }));
-    AGENT_SEED.forEach((a) => items.push({ label: a.name, sub: `Agent · ${a.role}`, href: "#/agents", ic: "users", kind: "Agent" }));
-    return items;
-  }
-
-  function renderSearchResults(query) {
-    const el = $("#searchResults");
-    if (!el) return;
-    const q = query.trim().toLowerCase();
-    const results = (q ? searchIndex().filter((x) => `${x.label} ${x.sub} ${x.kind}`.toLowerCase().includes(q)) : searchIndex().filter((x) => x.kind === "Bereich")).slice(0, 10);
-    el.innerHTML = results.length ? `<div class="stack">${results.map((r) => `<a class="more-card" style="flex-direction:row;align-items:center;gap:10px" href="${r.href}" data-action="search-result">${icon(r.ic)}<span class="grow"><strong style="font-size:13px">${esc(r.label)}</strong><small>${esc(r.sub)}</small></span><span class="badge">${esc(r.kind)}</span></a>`).join("")}</div>` : `<div class="empty">${icon("search")}<strong>Keine Treffer</strong><p>Versuche einen anderen Begriff.</p></div>`;
-  }
-
-  /* ============ TERMINAL COMMANDS ============ */
-  function pushTerm(kind, text) {
-    state.terminal.push({ kind, text });
-    state.terminal = state.terminal.slice(-100);
-  }
-
+  /* ---------------- terminal commands ---------------- */
   function runTerminalCommand(raw) {
-    const cmd = String(raw || "").trim();
+    const cmd = raw.trim();
     if (!cmd) return;
-    pushTerm("cmd", cmd);
-    const [base, ...args] = cmd.split(/\s+/);
-    const command = base.toLowerCase();
-    if (command === "clear") {
+    if (cmd === "clear") {
       state.terminal = [];
       save();
       renderRoute();
       return;
     }
-    if (command === "help") {
-      pushTerm("ok", "Verfügbare Befehle:");
-      terminalHelp().forEach((h) => pushTerm("dim", `  ${h.cmd.padEnd(18)} ${h.desc}`));
-    } else if (command === "ls" || command === "dir") {
-      pushTerm("ok", "NEXUS_V7/   Unity_Game/   KI_Modelle/   Horus_Tools/   Experimente/");
-      pushTerm("dim", "app.py  agent_orchestrator.py  loop_engine.py  README.md  requirements.txt");
-    } else if (command === "pwd") {
-      pushTerm("ok", "/home/nexus/NEXUS_V7");
-    } else if (command === "whoami") {
-      pushTerm("ok", "nexus");
-    } else if (command === "date") {
-      pushTerm("ok", new Date().toLocaleString("de-DE"));
-    } else if (command === "uptime") {
-      pushTerm("ok", `up 4 hours, 12 minutes · load average: 0.18, 0.11, 0.07`);
-    } else if (command === "neofetch") {
-      pushTerm("sys", "       NEXUS // HORUS LINUX");
-      pushTerm("dim", "  OS:       Horus Linux 7.4 (proot)");
-      pushTerm("dim", "  Shell:    bash 5.2 (simuliert)");
-      pushTerm("dim", "  Host:     Android / Termux");
-      pushTerm("dim", "  Model:    qwen2.5-coder:1.5b");
-      pushTerm("dim", "  Agents:   8 Profile · 0 autonome Prozesse");
-    } else if (command === "status") {
-      pushTerm("sys", "SYSTEM STATUS");
-      pushTerm("ok", `  Frontend:  bereit`);
-      pushTerm("ok", `  Loop:      ${state.loop.running ? (state.loop.paused ? "pausiert" : "läuft") : "bereit"} · Zyklus ${state.loop.cycle}/${state.loop.total} · ${Math.round(state.loop.progress)}%`);
-      pushTerm(state.connection.status === "ok" ? "ok" : "warn", `  Ollama:    ${state.connection.status === "ok" ? "verbunden" : "Demo-Modus"} · ${state.settings.ollamaUrl}`);
-      pushTerm("dim", `  Aufgaben:  ${state.tasks.filter((t) => t.status !== "erledigt").length} offen`);
-    } else if (command === "ollama") {
-      if ((args[0] || "").toLowerCase() === "list") {
-        pushTerm("sys", "NAME                        ID              SIZE      MODIFIED");
-        pushTerm("ok", "qwen2.5-coder:1.5b          a1b2c3d4     1.0 GB    2 days ago");
-        pushTerm("ok", "deepseek-r1:1.5b            4d3e2f1a     1.1 GB    3 days ago");
-        pushTerm("ok", "llama3:8b                   e5f6a7b8     4.7 GB    5 days ago");
-        pushTerm("dim", "Hinweis: simulierte Ausgabe.");
-      } else if ((args[0] || "").toLowerCase() === "ps") {
-        pushTerm("warn", "Kein laufendes Modell · Simulation.");
-      } else {
-        pushTerm("warn", "Verwendung: ollama list | ollama ps");
-      }
-    } else if (command === "python" || command === "flask") {
-      if (cmd.includes("server.py") || cmd.includes("app.py")) {
-        pushTerm("sys", " * Serving Flask app 'server'");
-        pushTerm("sys", " * Running on http://127.0.0.1:5000");
-        pushTerm("warn", "SIMULATION: Es wird kein Prozess gestartet.");
-        addAudit("system", "Simulierter Serverstart im Terminal", "terminal");
-      } else {
-        pushTerm("dim", "Python 3.12.3 (simuliert)");
-      }
-    } else if (command === "cat") {
-      if ((args[0] || "").toLowerCase() === "readme.md") {
-        pushTerm("ok", "# NEXUS CLAW V7.4.1");
-        pushTerm("dim", "Hybrid AI Office · lokale Verarbeitung bevorzugen.");
-        pushTerm("dim", "Dashboard-Prototyp ohne autonome Codeausführung.");
-      } else {
-        pushTerm("err", `cat: ${args[0] || "Datei"}: Datei nicht lesbar (Read-Only-Prototyp)`);
-      }
-    } else if (command === "open") {
-      const target = (args[0] || "").replace("#/", "");
-      if (ROUTES[target]) {
-        pushTerm("ok", `Öffne ${ROUTES[target].title}…`);
-        save();
-        navigate(target);
-        return;
-      }
-      pushTerm("err", "Unbekannter Bereich. Nutze help oder open home.");
-    } else if (command === "echo") {
-      pushTerm("ok", args.join(" "));
-    } else if (command === "sudo") {
-      pushTerm("err", "sudo ist im Prototyp deaktiviert. Keine Codeausführung.");
+    const next = [{ type: "prompt", cmd }];
+    if (cmd === "help") {
+      next.push({ type: "out", text: "Befehle: help, status, git status, ollama list, python server.py, ls, neofetch, audit, clear" });
+    } else if (cmd === "git status") {
+      next.push({ type: "out", text: "Auf Branch main\nnichts zu committen, Arbeitsverzeichnis sauber" });
+    } else if (cmd === "ollama list") {
+      next.push({ type: "out", text: "NAME         ID       SIZE   MODIFIED\nqwen2.5      a1b2c3d4 4.1 GB 2 days ago\ndeepseek-r1  d4c3b2a1 7.8 GB 3 days ago\nllama3       e5f6a7b8 4.7 GB 5 days ago\nmistral      b7c8d9e0 4.3 GB 1 day ago" });
+    } else if (cmd === "python server.py") {
+      next.push({ type: "out", text: "* Running on http://127.0.0.1:5000\n* Press CTRL+C to quit" });
+    } else if (cmd === "ls") {
+      next.push({ type: "out", text: state.projects.map((p) => p.name.toLowerCase().replace(/\s+/g, "_")).join("  ") });
+    } else if (cmd === "status") {
+      next.push({ type: "out", text: `NEXUS V7 · ${state.connection.status === "ok" ? "Ollama verbunden" : "Demo-Modus"}\nLoop: Zyklus ${state.loop.cycle}/${state.loop.total} · ${Math.round(state.loop.progress)}%\nOffene Aufgaben: ${state.tasks.filter((t) => t.status !== "erledigt").length}` });
+    } else if (cmd === "audit") {
+      next.push({ type: "out", text: state.audit.slice(0, 5).map((a) => `${a.time}  ${a.type}  ${a.actor} ${a.text}`).join("\n") });
+    } else if (cmd === "neofetch") {
+      next.push({ type: "out", text: "       /\\        nexus@horus\n      /  \\       ------------\n     / /\\ \\      OS: HORUS Linux (Termux)\n    / ____ \\     Shell: bash 5.2\n   /_/    \\_\\    Agents: 8 online\n                 Loop: 7 phases" });
+    } else if (cmd.startsWith("echo ")) {
+      next.push({ type: "out", text: cmd.slice(5) });
     } else {
-      pushTerm("err", `${base}: Befehl nicht gefunden (Simulation). Tippe "help".`);
+      next.push({ type: "err", text: `bash: ${cmd}: Kommando nicht gefunden` });
     }
+    state.terminal.push(...next);
+    state.terminal = state.terminal.slice(-120);
+    addAudit("system", "Terminal", cmd);
     save();
     renderRoute();
+    setTimeout(() => {
+      const out = $("#termOutput");
+      if (out) out.scrollTop = out.scrollHeight;
+      const input = $("#termInput");
+      if (input) input.focus({ preventScroll: true });
+    }, 30);
   }
 
-  /* ============ ACTIONS ============ */
-  function toggleTask(id) {
-    const t = state.tasks.find((x) => x.id === id);
-    if (!t) return;
-    t.status = t.status === "erledigt" ? "offen" : "erledigt";
-    addAudit("test", `${t.title} · ${t.status === "erledigt" ? "erledigt" : "wieder geöffnet"}`, agentById(t.agent)?.name || "system");
-    save();
-    renderRoute();
-    toast(t.status === "erledigt" ? "Aufgabe abgeschlossen" : "Aufgabe wieder geöffnet");
-  }
-
-  function deleteTask(id) {
-    const t = state.tasks.find((x) => x.id === id);
-    state.tasks = state.tasks.filter((x) => x.id !== id);
-    if (t) addAudit("note", `Aufgabe entfernt: ${t.title}`, "tasks");
-    save();
-    renderRoute();
-    toast("Aufgabe gelöscht");
-  }
-
-  function deleteNote(id) {
-    const n = state.notes.find((x) => x.id === id);
-    state.notes = state.notes.filter((x) => x.id !== id);
-    if (n) addAudit("note", `Notiz entfernt: ${n.title}`, "notes");
-    save();
-    renderRoute();
-    toast("Notiz gelöscht");
-  }
-
-  function openRoomModal(id) {
-    const r = ROOM_SEED.find((x) => x.id === id);
-    if (!r) return;
-    openModal({
-      title: r.name,
-      eyebrow: `RAUM ${r.num}`,
-      body: `<p class="field-hint">${esc(r.desc)}</p>
-        <div class="row" style="margin-top:14px"><span class="badge cyan">${r.occupants.length} Agent</span>${r.occupants.map((o) => `<span class="agent-ava" style="width:28px;height:28px;font-size:9px;--accent:${r.accent};color:${r.accent}">${esc(o)}</span>`).join("")}</div>
-        <hr class="hr" />
-        <div class="small muted">Der Raum ist im Prototyp eine organisatorische Zuordnung. Es läuft kein eigener Prozess.</div>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Schließen</button><button class="btn primary" data-action="room-chat" data-room="${r.id}">${icon("chat")} Raum-Chat</button>`
-    });
-  }
-
-  function exportData() {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `nexus-claw-v741-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-    addAudit("system", "Lokale Daten exportiert", "settings");
-    save();
-    toast("Export erstellt");
-  }
-
-  function confirmModal(title, text, action, label = "Bestätigen") {
-    openModal({
-      title,
-      eyebrow: "BESTÄTIGUNG",
-      body: `<p class="field-hint">${esc(text)}</p>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn danger" data-action="${action}">${icon("alert")} ${esc(label)}</button>`
-    });
-  }
-
+  /* ---------------- actions ---------------- */
   function handleAction(action, el) {
     switch (action) {
       case "close-modal": closeModal(); break;
-      case "open-more": navigate("more"); break;
-      case "open-profile": navigate("settings"); break;
-      case "open-terminal": closeModal(); navigate("terminal"); break;
-      case "open-library": closeModal(); navigate("library"); break;
-      case "open-chat": closeModal(); navigate("chat"); break;
-      case "open-tasks": closeModal(); navigate("tasks"); break;
-      case "open-settings": closeModal(); navigate("settings"); break;
-      case "search-open": openSearchModal(); break;
-      case "search-result": closeModal(); break;
-      case "launch": openLaunchModal(el.dataset.provider); break;
-      case "session-manage": openSessionModal(el.dataset.session); break;
-      case "end-session": endSession(el.dataset.session); break;
-      case "loop-menu": openLoopMenu(); break;
-      case "term-key": toast(`Taste ${el.dataset.key} · Terminal-Tastatur (Demo)`); break;
-      case "new-task": openTaskModal(); break;
-      case "new-note": openNoteModal(); break;
-      case "new-project": openProjectModal(); break;
-      case "new-model": openModelModal(); break;
-      case "toggle-task": toggleTask(el.dataset.task); break;
-      case "delete-task": deleteTask(el.dataset.task); break;
-      case "task-filter": state.ui.taskFilter = el.dataset.value; save(); renderRoute(); break;
-      case "project-filter": state.ui.projectFilter = el.dataset.value; save(); renderRoute(); break;
-      case "project-open": openProjectDetail(el.dataset.project); break;
-      case "project-task": {
-        const p = state.projects.find((x) => x.id === el.dataset.project);
-        openTaskModal();
-        if (p) { const sel = $("#taskProject"); if (sel) sel.value = p.name; }
-        break;
-      }
-      case "edit-note": openNoteModal(state.notes.find((n) => n.id === el.dataset.note)); break;
-      case "delete-note": confirmModal("Notiz löschen", "Diese Notiz wird dauerhaft aus dem lokalen Speicher entfernt.", "confirm-delete-note", "Löschen"); ui.pendingDelete = el.dataset.note; break;
-      case "confirm-delete-note": deleteNote(ui.pendingDelete); ui.pendingDelete = null; closeModal(); break;
-      case "file-open": openFileModal(el.dataset.file); break;
-      case "chat-agent": {
-        state.chat.agent = el.dataset.agent;
+      case "open-menu": navigate("menu"); break;
+      case "open-settings": navigate("settings"); break;
+      case "back": navigate("agents"); break;
+      case "open-terminal": navigate("terminal"); break;
+      case "open-file": navigate("terminal"); setTimeout(() => toast("Dateisystem über Terminal geöffnet"), 50); break;
+      case "open-audit": navigate("audit"); break;
+      case "open-task": openTaskModal(); break;
+      case "open-project": openProjectModal(); break;
+      case "open-project-detail": openProjectDetail(el.dataset.project); break;
+      case "add-skill": openSkillModal(el.dataset.agent); break;
+      case "agent-open":
+        state.ui.selectedAgent = el.dataset.agent;
+        state.ui.agentTab = "skills";
         save();
-        closeModal();
-        if (getRoute() === "chat") renderRoute();
-        else navigate("chat");
-        const a = agentById(el.dataset.agent);
-        toast(a ? `Chat mit ${a.name}` : "NEXUS Chat geöffnet");
+        navigate("agent");
         break;
-      }
-      case "assign-agent": openTaskModal(el.dataset.agent); break;
-      case "room-enter": openRoomModal(el.dataset.room); break;
-      case "room-chat": closeModal(); navigate("chat"); toast("Raum-Chat geöffnet (simuliert)"); break;
-      case "skill-toggle": {
-        const id = el.dataset.skill;
-        state.skills[id] = !state.skills[id];
-        const s = SKILL_SEED.find((x) => x.id === id);
-        addAudit("system", `Skill ${state.skills[id] ? "aktiviert" : "deaktiviert"}: ${s?.name || id}`, "skills");
+      case "agent-tab":
+        state.ui.agentTab = el.dataset.tab;
         save();
         renderRoute();
-        toast(`Skill ${state.skills[id] ? "aktiviert" : "deaktiviert"}`);
+        break;
+      case "skill-edit": {
+        state.ui.mutationAgent = el.dataset.agent;
+        state.ui.mutationSkill = el.dataset.skill;
+        state.ui.mutationMode = "manuell";
+        save();
+        navigate("mutation");
         break;
       }
-      case "audit-filter": state.ui.auditFilter = el.dataset.value; save(); renderRoute(); break;
-      case "clear-audit": confirmModal("Audit-Protokoll leeren", "Alle lokalen Audit-Einträge werden entfernt. Diese Aktion kann nicht rückgängig gemacht werden.", "confirm-clear-audit", "Leeren"); break;
-      case "confirm-clear-audit": state.audit = []; save(); closeModal(); renderRoute(); toast("Audit-Protokoll geleert"); break;
-      case "clear-chat": confirmModal("Chat leeren", "Der lokale Chatverlauf wird entfernt. Die Sitzung bleibt bestehen.", "confirm-clear-chat", "Leeren"); break;
-      case "confirm-clear-chat": resetChat(); closeModal(); break;
-      case "new-chat": resetChat(); toast("Neue Sitzung gestartet"); break;
+      case "mutation-mode":
+        state.ui.mutationMode = el.dataset.mode;
+        save();
+        renderRoute();
+        break;
+      case "mutation-run": {
+        const agent = mutationAgent();
+        const skill = skillsFor(agent).find((s) => s.name === state.ui.mutationSkill);
+        const from = skill ? skill.level : agent.level;
+        const to = Math.min(10, from + 1);
+        if (skill) skill.level = to;
+        if (skill) state.skillLevels[`${agent.id}:${skill.name}`] = to;
+        agent.level = Math.max(agent.level, to);
+        state.agentLevels[agent.id] = agent.level;
+        const result = state.mutationResult;
+        state.mutationResult = {
+          levelFrom: from, levelTo: to,
+          versionFrom: result.versionTo, versionTo: result.versionTo + 1,
+          hash: `${Math.random().toString(16).slice(2, 8)}… → ${Math.random().toString(16).slice(2, 8)}…`
+        };
+        addAudit("mutation", agent.name, `/ ${state.ui.mutationSkill} Lv. ${from} → ${to}`);
+        save();
+        renderRoute();
+        toast(`Mutation ausgeführt: ${state.ui.mutationSkill} Lv. ${to}`);
+        break;
+      }
+      case "model-select":
+        state.settings.model = el.dataset.model;
+        addAudit("system", "Modell", `Standardmodell → ${el.dataset.model}`);
+        save();
+        renderRoute();
+        toast(`Modell gewählt: ${el.dataset.model}`);
+        break;
+      case "model-send": sendModelTest(); break;
+      case "test-connection": testConnection(); break;
+      case "system-check":
+        testConnection();
+        toast("Systemcheck gestartet");
+        break;
       case "loop-start": startLoop(); break;
       case "loop-pause": pauseLoop(); break;
       case "loop-stop": stopLoop(); break;
-      case "test-connection": testConnection(); break;
-      case "model-select": {
-        const id = el.dataset.modelId;
-        const name = el.dataset.modelName;
-        state.settings.model = name;
-        addAudit("model", `Standardmodell → ${name}`, "model");
+      case "project-filter":
+        state.ui.projectFilter = el.dataset.filter;
         save();
         renderRoute();
-        toast(`Modell gesetzt: ${name}`);
         break;
-      }
-      case "toggle-setting": {
-        const path = el.dataset.settingKey;
-        const parts = path.split(".");
-        let obj = state.settings;
-        for (let i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
-        obj[parts[parts.length - 1]] = !obj[parts[parts.length - 1]];
-        addAudit("safety", `${path} → ${obj[parts[parts.length - 1]] ? "an" : "aus"}`, "settings");
-        save();
-        renderRoute();
-        toast("Einstellung gespeichert");
-        break;
-      }
-      case "reset-data": confirmModal("Lokale Daten zurücksetzen", "Alle Aufgaben, Notizen, Sitzungen und Einstellungen werden durch die Demo-Daten ersetzt.", "confirm-reset", "Zurücksetzen"); break;
-      case "confirm-reset": {
-        state = freshState();
-        applyTheme();
-        save();
+      case "project-open": openProjectDetail(el.dataset.project); break;
+      case "project-task":
         closeModal();
-        buildNav();
+        openTaskModal();
+        break;
+      case "task-filter":
+        state.ui.taskFilter = el.dataset.filter;
+        save();
         renderRoute();
-        toast("Demo-Daten wiederhergestellt");
+        break;
+      case "task-toggle": {
+        const task = state.tasks.find((t) => t.id === el.dataset.task);
+        if (!task) break;
+        task.status = task.status === "erledigt" ? "offen" : "erledigt";
+        addAudit("note_update", "", `${task.title} → ${task.status}`);
+        save();
+        renderRoute();
+        toast(task.status === "erledigt" ? "Aufgabe erledigt" : "Aufgabe wieder geöffnet");
         break;
       }
-      case "export-data": exportData(); break;
-      case "term-key": {
-        const key = el.dataset.key;
-        if (key === "help" || key === "clear") runTerminalCommand(key);
-        else toast(`${key} ist im Prototyp ohne Funktion`, "warn");
+      case "term-tab":
+        state.ui.terminalTab = el.dataset.tab;
+        save();
+        renderRoute();
         break;
-      }
+      case "term-new":
+        state.terminal = [{ type: "out", text: "Neue Terminal-Sitzung · nexus@horus" }];
+        state.ui.terminalTab = "terminal";
+        save();
+        renderRoute();
+        break;
+      case "audit-filter":
+        state.ui.auditFilter = el.dataset.filter;
+        save();
+        renderRoute();
+        break;
+      case "audit-all":
+        state.ui.auditFilter = "Alle";
+        save();
+        renderRoute();
+        break;
       default: break;
     }
   }
 
-  function resetChat() {
-    state.chat.messages = [{
-      id: uid("m"),
-      role: "assistant",
-      text: "Neue Sitzung gestartet. Stelle eine Frage oder wähle links ein Agentenprofil.",
-      time: clockNow(),
-      demo: true
-    }];
-    save();
-    renderRoute();
-  }
-
-  /* ============ FORMS ============ */
   function handleForm(form) {
     const type = form.dataset.form;
+    if (type === "terminal") {
+      const input = $("#termInput");
+      const value = input ? input.value : "";
+      if (input) input.value = "";
+      runTerminalCommand(value);
+      return;
+    }
     if (type === "task") {
       const data = new FormData(form);
       const title = String(data.get("title") || "").trim();
       if (!title) return;
-      const editId = form.dataset.edit;
-      if (editId) {
-        const t = state.tasks.find((x) => x.id === editId);
-        if (t) Object.assign(t, { title, priority: data.get("priority"), agent: data.get("agent"), project: data.get("project"), due: data.get("due") });
-        addAudit("note", `Aufgabe aktualisiert: ${title}`, "tasks");
-      } else {
-        state.tasks.unshift({ id: uid("t"), title, priority: data.get("priority"), status: "offen", agent: data.get("agent"), project: data.get("project"), due: data.get("due") });
-        addAudit("note", `Aufgabe erstellt: ${title}`, "tasks");
-      }
+      state.tasks.unshift({ id: uid("t"), title, priority: String(data.get("priority") || "mittel"), status: "offen", agent: String(data.get("agent") || "rick"), due: String(data.get("due") || todayISO()) });
+      addAudit("note_create", "", title);
       save();
       closeModal();
-      renderRoute();
-      toast(editId ? "Aufgabe gespeichert" : "Aufgabe erstellt");
-      return;
-    }
-    if (type === "quick-task") {
-      const title = String(new FormData(form).get("quickTitle") || "").trim();
-      if (!title) return;
-      const priority = String(new FormData(form).get("quickPriority") || "mittel");
-      state.tasks.unshift({ id: uid("t"), title, priority, status: "offen", agent: "rick", project: "NEXUS V7", due: new Date().toISOString().slice(0, 10) });
-      addAudit("note", `Aufgabe erstellt: ${title}`, "tasks");
+      state.ui.taskFilter = "alle";
       save();
       renderRoute();
-      toast("Aufgabe hinzugefügt");
-      return;
-    }
-    if (type === "note") {
-      const data = new FormData(form);
-      const title = String(data.get("title") || "").trim();
-      const body = String(data.get("body") || "").trim();
-      if (!title) return;
-      const accent = String(data.get("accent") || "#8dff48");
-      const editId = form.dataset.edit;
-      if (editId) {
-        const n = state.notes.find((x) => x.id === editId);
-        if (n) Object.assign(n, { title, body, accent, updated: new Date().toISOString() });
-        addAudit("note", `Notiz aktualisiert: ${title}`, "notes");
-      } else {
-        state.notes.unshift({ id: uid("n"), title, body, accent, updated: new Date().toISOString() });
-        addAudit("note", `Notiz erstellt: ${title}`, "notes");
-      }
-      save();
-      closeModal();
-      renderRoute();
-      toast(editId ? "Notiz gespeichert" : "Notiz erstellt");
+      toast("Aufgabe angelegt");
       return;
     }
     if (type === "project") {
       const data = new FormData(form);
       const name = String(data.get("name") || "").trim();
       if (!name) return;
-      state.projects.unshift({
-        id: uid("p"), name, type: String(data.get("type") || "Diverses"), status: String(data.get("status") || "Aktiv"),
-        language: String(data.get("type") || "Mixed"), updated: new Date().toISOString().slice(0, 10), progress: 0,
-        accent: "#8dff48", icon: "folder", desc: String(data.get("desc") || "Neues Projekt.")
-      });
-      addAudit("project", `Projekt erstellt: ${name}`, "projects");
+      const colors = [["#146dff", "#0c3fa0"], ["#ff9d22", "#c74b07"], ["#8d4cff", "#4c17a8"], ["#25d16d", "#0b7437"]];
+      const c = colors[state.projects.length % colors.length];
+      state.projects.unshift({ id: uid("p"), name, type: String(data.get("type") || "Projekt"), status: String(data.get("status") || "Aktiv"), updated: todayISO(), icon: "folder", c1: c[0], c2: c[1], progress: 0, desc: "Neu angelegtes Projekt." });
+      addAudit("system", "Projekt", `${name} angelegt`);
       save();
       closeModal();
+      state.ui.projectFilter = "alle";
+      save();
       renderRoute();
-      toast("Projekt erstellt");
+      toast("Projekt angelegt");
       return;
     }
-    if (type === "model") {
+    if (type === "skill") {
       const data = new FormData(form);
+      const agent = agentById(form.dataset.agent) || AGENTS[0];
       const name = String(data.get("name") || "").trim();
       if (!name) return;
-      state.customModels = state.customModels || [];
-      state.customModels.push({ id: uid("m"), name, kind: String(data.get("kind") || "Custom"), base: String(data.get("base") || ""), note: String(data.get("note") || "") });
-      addAudit("model", `Modell registriert: ${name}`, "models");
+      if (!state.customSkills[agent.id]) state.customSkills[agent.id] = [];
+      state.customSkills[agent.id].push({ name, level: Number(data.get("level")) || 1, desc: String(data.get("desc") || "Neuer Skill."), icon: "skills" });
+      addAudit("skill", agent.name, `/ ${name} hinzugefügt`);
       save();
       closeModal();
-      renderRoute();
-      toast("Modell hinzugefügt");
-      return;
-    }
-    if (type === "launch") {
-      const data = new FormData(form);
-      const providerId = form.dataset.provider;
-      const provider = PROVIDERS.find((p) => p.id === providerId) || PROVIDERS[0];
-      const agentId = String(data.get("agent") || "rick");
-      const agent = agentById(agentId);
-      const model = String(data.get("model") || state.settings.model);
-      const task = String(data.get("task") || "");
-      state.sessions.unshift({ id: uid("s"), name: `${provider.name} · ${agent?.name || "Agent"}`, status: "Läuft", started: timeNow() });
-      state.settings.model = model;
-      state.chat.agent = agentId;
-      state.chat.messages.push({
-        id: uid("m"), role: "assistant", time: clockNow(), demo: true,
-        text: `Simulierte Sitzung gestartet.\n\nProvider: ${provider.name}\nAgent: ${agent?.name || agentId}\nModell: ${model}\nAuftrag: ${task || "—"}\n\nEs wurde kein Prozess ausgeführt. Für echte Antworten verbinde Ollama in der Modellzentrale.`
-      });
-      addAudit("system", `${provider.name}-Sitzung gestartet · ${agent?.name || agentId}`, "sessions");
+      state.ui.selectedAgent = agent.id;
+      state.ui.agentTab = "skills";
       save();
-      closeModal();
-      navigate("chat");
-      toast(`Sitzung mit ${agent?.name || "Agent"} gestartet`);
-      return;
-    }
-    if (type === "chat") {
-      const input = $("#chatInput");
-      sendChat(input?.value || "");
-      return;
-    }
-    if (type === "terminal") {
-      const input = $("#termInput");
-      runTerminalCommand(input?.value || "");
-      return;
+      navigate("agent");
+      toast(`Skill ${name} hinzugefügt`);
     }
   }
 
-  /* ============ CHANGE / INPUT ============ */
-  function setSettingPath(path, value) {
-    const parts = path.split(".");
-    let obj = state.settings;
-    for (let i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
-    obj[parts[parts.length - 1]] = value;
+  function handleSettingChange(el) {
+    if (!el.dataset.setting) return;
+    const path = el.dataset.setting;
+    let value;
+    if (el.type === "checkbox") value = el.checked;
+    else if (el.type === "number") value = Number(el.value);
+    else value = el.value;
+    setPath(state, path, value);
+    addAudit("system", "Einstellungen", `${path} geändert`);
+    save();
+    toast("Einstellung gespeichert");
+    if (path === "settings.model" && getRoute() === "models") renderRoute();
   }
 
-  function applyTheme() {
-    document.documentElement.dataset.theme = state.settings.theme || "cyberpunk";
-  }
-
-  function handleChange(el) {
-    if (el.matches("[data-setting]")) {
-      let value = el.value;
-      if (el.dataset.setting.startsWith("limits.")) value = Number(value) || 0;
-      setSettingPath(el.dataset.setting, value);
-      if (el.dataset.setting === "theme") applyTheme();
+  function handleToggle(el) {
+    const path = el.dataset.toggle;
+    if (!path) return;
+    if (path.startsWith("ui.")) { setPath(state.ui, path.slice(3), el.checked); save(); return; }
+    if (path.startsWith("loop")) {
+      if (path === "loopAutonomous") state.loop.autonomous = el.checked;
+      if (path === "loopSafety") state.loop.safety = el.checked;
+      addAudit("safety", "Loop", `${path} → ${el.checked ? "an" : "aus"}`);
       save();
-      if (el.dataset.setting === "language" && value === "en") toast("English ist im Prototyp noch nicht vollständig", "warn");
-      else toast("Einstellung gespeichert");
       return;
     }
-    if (el.id === "chatModel") {
-      state.settings.model = el.value;
-      addAudit("model", `Chat-Modell → ${el.value}`, "chat");
-      save();
-      const label = $("#chatModelLabel");
-      if (label) label.textContent = el.value;
-      toast(`Chat-Modell: ${el.value}`);
+    setPath(state, path, el.checked);
+    addAudit("safety", "Einstellungen", `${path} → ${el.checked ? "an" : "aus"}`);
+    save();
+    toast("Sicherheitseinstellung gespeichert");
+  }
+
+  function handleLoopChange(el) {
+    const type = el.dataset.change;
+    if (type === "loop-total") state.loop.total = Number(el.value) || 10;
+    if (type === "loop-interval") state.loop.interval = Number(el.value) || 5;
+    if (type === "loop-mutation") state.loop.mutationChance = Math.max(0, Math.min(100, Number(el.value) || 0));
+    if (type === "test-model") state.modelTest.model = el.value;
+    if (type === "mutation-agent") {
+      state.ui.mutationAgent = el.value;
+      const a = agentById(el.value);
+      state.ui.mutationSkill = (skillsFor(a)[0] || {}).name || "";
     }
+    if (type === "mutation-skill") state.ui.mutationSkill = el.value.replace(/\s*\(Lv\.\s*\d+\)$/, "");
+    save();
+    if (type === "mutation-agent") renderRoute();
   }
 
-  function handleInput(el) {
-    if (el.id === "noteSearch") {
-      state.ui.noteQuery = el.value;
-      const q = el.value.toLowerCase();
-      const notes = state.notes.filter((n) => !q || n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q));
-      const grid = $("#noteGrid");
-      if (grid) grid.innerHTML = noteCards(notes);
-    } else if (el.id === "librarySearch") {
-      state.ui.libraryQuery = el.value;
-      const q = el.value.toLowerCase();
-      const files = LIBRARY_SEED.filter((f) => !q || f.name.toLowerCase().includes(q) || f.project.toLowerCase().includes(q) || f.type.toLowerCase().includes(q));
-      const rows = $("#libraryRows");
-      if (rows) rows.innerHTML = fileRows(files);
-    } else if (el.id === "searchModalInput") {
-      renderSearchResults(el.value);
-    } else if (el.id === "chatInput") {
-      el.style.height = "auto";
-      el.style.height = `${Math.min(120, el.scrollHeight)}px`;
-    } else if (el.id === "globalSearch") {
-      el.value = "";
-      openSearchModal();
+  function handleBindInput(el) {
+    const path = el.dataset.bind;
+    if (!path) return;
+    if (path === "modelTest.prompt") state.modelTest.prompt = el.value;
+    if (path === "mutationContent") {
+      state.ui.mutationContent = el.value;
+      const counter = $("#mutationCounter");
+      if (counter) counter.textContent = `${el.value.length}/500`;
     }
+    save();
   }
 
-  /* ============ METRICS ============ */
-  function tickMetrics() {
-    ui.metrics.storage = clamp(ui.metrics.storage + (Math.random() - 0.5) * 0.12, 88, 110);
-    ui.metrics.ram = clamp(ui.metrics.ram + (Math.random() - 0.5) * 0.16, 1.4, 3.2);
-    ui.metrics.battery = clamp(ui.metrics.battery - Math.random() * 0.02, 88, 100);
-    if (!["home", "status"].includes(getRoute())) return;
-    const cards = $$(".metric");
-    if (!cards.length) return;
-    cards.forEach((card) => {
-      const label = card.querySelector(".metric-label > span")?.textContent;
-      const el = card.querySelector(".metric-value");
-      if (!el || !label) return;
-      if (label === "Speicher") el.textContent = `${ui.metrics.storage.toFixed(1)} GB`;
-      if (label === "RAM") el.textContent = `${ui.metrics.ram.toFixed(1)} GB`;
-      if (label === "Batterie") el.textContent = `${Math.round(ui.metrics.battery)}%`;
-    });
+  /* ---------------- clock ---------------- */
+  function updateClock() {
+    const now = new Date();
+    const time = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const el = $("#statusClock");
+    if (el) el.textContent = time;
   }
 
-  function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+  /* ---------------- init ---------------- */
+  function init() {
+    buildNav();
+    if (!location.hash) history.replaceState(null, "", "#/home");
+    renderRoute();
+    updateClock();
+    setInterval(updateClock, 30000);
+    if (state.loop.running) ensureLoopTimer();
+  }
 
-  /* ============ EVENTS ============ */
   document.addEventListener("click", (event) => {
-    const el = event.target.closest("[data-action]");
-    if (!el) return;
-    if (el.tagName === "A" && el.getAttribute("href")?.startsWith("#/")) {
-      if (el.dataset.action === "search-result") closeModal();
+    const actionEl = event.target.closest("[data-action]");
+    if (actionEl) {
+      const action = actionEl.dataset.action;
+      const isLink = actionEl.tagName === "A" && actionEl.getAttribute("href")?.startsWith("#/");
+      if (isLink) {
+        if (action === "close-modal") closeModal();
+      } else {
+        event.preventDefault();
+      }
+      handleAction(action, actionEl);
+      return;
     }
-    if (el.dataset.action === "launch" || el.dataset.action === "model-select") {
-      if (event.type === "click" && el.dataset.action === "model-select") event.preventDefault();
+    const switchEl = event.target.closest(".switch");
+    if (switchEl) {
+      event.preventDefault();
+      const input = switchEl.querySelector("input");
+      if (input) {
+        input.checked = !input.checked;
+        handleToggle(input);
+      }
     }
-    handleAction(el.dataset.action, el);
   });
 
   document.addEventListener("submit", (event) => {
@@ -2411,66 +1444,28 @@
     if (!form) return;
     event.preventDefault();
     handleForm(form);
-    if (form.dataset.form === "chat") {
-      const input = $("#chatInput");
-      if (input) { input.value = ""; input.style.height = "auto"; }
-    }
-    if (form.dataset.form === "terminal") {
-      const input = $("#termInput");
-      if (input) input.value = "";
+  });
+
+  document.addEventListener("change", (event) => {
+    const el = event.target;
+    if (el.dataset.setting) handleSettingChange(el);
+    else if (el.dataset.toggle) handleToggle(el);
+    else if (el.dataset.change) handleLoopChange(el);
+  });
+
+  document.addEventListener("input", (event) => {
+    const el = event.target;
+    if (el.dataset.bind) handleBindInput(el);
+    if (el.dataset.setting && el.type !== "checkbox") {
+      setPath(state, el.dataset.setting, el.type === "number" ? Number(el.value) : el.value);
+      save();
     }
   });
 
-  document.addEventListener("change", (event) => handleChange(event.target));
-  document.addEventListener("input", (event) => handleInput(event.target));
-
+  window.addEventListener("hashchange", renderRoute);
   document.addEventListener("keydown", (event) => {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      openSearchModal();
-      return;
-    }
-    if (event.key === "Escape" && !$("#modalLayer").hidden) {
-      closeModal();
-      return;
-    }
-    if (event.target.id === "chatInput" && event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      $("#chatForm")?.requestSubmit();
-      return;
-    }
-    if (event.target.id === "searchModalInput" && event.key === "Enter") {
-      event.preventDefault();
-      const first = $("#searchResults a");
-      if (first) first.click();
-      return;
-    }
-    if (event.target.closest('[data-action="model-select"]') && (event.key === "Enter" || event.key === " ")) {
-      event.preventDefault();
-      handleAction("model-select", event.target.closest('[data-action="model-select"]'));
-    }
+    if (event.key === "Escape" && !$("#modalLayer").hidden) closeModal();
   });
-
-  window.addEventListener("hashchange", () => {
-    closeModal();
-    renderRoute();
-  });
-
-  window.addEventListener("online", () => { updateOnlinePill(); if (getRoute() === "home") renderRoute(); });
-  window.addEventListener("offline", () => { updateOnlinePill(); if (getRoute() === "home") renderRoute(); });
-
-  /* ============ INIT ============ */
-  function init() {
-    applyTheme();
-    buildNav();
-    if (!location.hash) history.replaceState(null, "", "#/home");
-    renderRoute();
-    updateClock();
-    setInterval(updateClock, 1000);
-    setInterval(tickMetrics, 7000);
-    if (state.loop.running) ensureLoopTimer();
-    updateOnlinePill();
-  }
 
   init();
 })();
