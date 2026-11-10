@@ -8,21 +8,11 @@
   const STORAGE_KEY = "nexus-claw-v741";
 
   const MODEL_SEED = [
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle", "1.5B"], status: "Verbunden", statusKind: "green" },
-    { id: "deepseek", name: "DeepSeek", sub: "Reasoning & Analyse", icon: "brain", accent: "#b379ff", family: "Reasoning", model: "deepseek-r1:latest", tags: ["Text", "Code", "Analyse"], status: "Bereit", statusKind: "green" },
-    { id: "codex", name: "Codex", sub: "OpenAI Agent (lokal/Cloud)", icon: "zap", accent: "#31d8ff", family: "Agent", model: "codex-latest", tags: ["Code", "Agent", "Tools"], status: "Bereit", statusKind: "green" },
-    { id: "opencode", name: "OpenCode", sub: "Autonomer Coding Agent", icon: "code", accent: "#3f8dff", family: "Agent", model: "opencode-latest", tags: ["Code", "Planung", "Ausführung"], status: "Bereit", statusKind: "green" },
-    { id: "copilot", name: "GitHub Copilot", sub: "Assistenz & Vorschläge", icon: "github", accent: "#8fbcff", family: "Assistenz", model: "github-copilot", tags: ["Code", "IDE"], status: "Verbunden", statusKind: "green" },
-    { id: "claude", name: "Claude Code", sub: "KI-Coding Agent", icon: "sparkles", accent: "#ffa53c", family: "Agent", model: "claude-sonnet", tags: ["Code", "Agent"], status: "Bereit", statusKind: "green" }
+    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle"], status: "Verbunden", statusKind: "green" }
   ];
 
   const PROVIDERS = [
-    { id: "claude", name: "Claude Code", sub: "KI-Coding Agent", icon: "sparkles", accent: "#ffa53c", agent: "rick" },
-    { id: "codex", name: "Codex", sub: "OpenAI Agent", icon: "zap", accent: "#31d8ff", agent: "stewie" },
-    { id: "opencode", name: "OpenCode", sub: "Dev Agent", icon: "code", accent: "#3f8dff", agent: "stewie" },
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle", icon: "cpu", accent: "#8dff48", agent: "morty" },
-    { id: "deepseek", name: "DeepSeek", sub: "Reasoning Model", icon: "brain", accent: "#b379ff", agent: "morty" },
-    { id: "copilot", name: "GitHub Copilot", sub: "Code Assist", icon: "github", accent: "#8fbcff", agent: "stewie" }
+    { id: "ollama", name: "Ollama", sub: "Lokale Modelle", icon: "cpu", accent: "#8dff48", agent: "morty" }
   ];
 
   const AGENT_SEED = [
@@ -52,7 +42,6 @@
     { id: "images", name: "image-search", desc: "Bildrecherche mit Größen-, Farb- und Lizenzfiltern.", source: "z0gsh1u/oh-my-writing-skill", tag: "Medien", enabled: true },
     { id: "gauntlet", name: "gauntlet-loop", desc: "Qualitätsbarren, Builder/Critic-Schleifen und blinde Vergleiche.", source: "robonuggets/gauntlet-loop", tag: "Qualität", enabled: true },
     { id: "sketchfab", name: "load-sketchfab-threejs", desc: "GLB-Assets prüfen, normalisieren und in Three.js laden.", source: "local", tag: "3D", enabled: false },
-    { id: "zen", name: "opencode-zen-completions", desc: "OpenAI-kompatible Completions über die OpenCode Zen API.", source: "local", tag: "KI", enabled: true },
     { id: "review", name: "code-review", desc: "Strukturierte Prüfung von Diffs vor der Freigabe.", source: "local", tag: "Entwicklung", enabled: true },
     { id: "test", name: "test-automation", desc: "Testfälle ableiten, ausführen und Fehlerursachen eingrenzen.", source: "local", tag: "Test", enabled: false },
     { id: "audit", name: "audit-export", desc: "Audit-Protokolle filtern und als JSON exportieren.", source: "local", tag: "System", enabled: true }
@@ -71,7 +60,7 @@
   const LOOP_LOG_STAGES = [
     { title: "Planung", time: "20:42", lines: [
       { tag: "NEXUS", text: "Repository analysieren …", end: "OK", tone: "green" },
-      { tag: "DeepSeek", text: "Ziele und Prioritäten gesetzt" },
+      { tag: "Ollama", text: "Ziele und Prioritäten gesetzt" },
       { tag: "Ollama", text: "Modell: qwen2.5-coder:1.5b (lokal)" }
     ] },
     { title: "Code ändern", time: "20:44", lines: [
@@ -86,7 +75,7 @@
     ] },
     { title: "Fehlerbehebung", time: "20:46", lines: [
       { tag: "NEXUS", text: "Keine kritischen Fehler" },
-      { tag: "DeepSeek", text: "Code-Review erfolgreich abgeschlossen." }
+      { tag: "Ollama", text: "Code-Review erfolgreich abgeschlossen." }
     ] },
     { title: "Dokumentation", time: "20:46", lines: [
       { tag: "GitHub", text: "Protokoll aktualisiert" }
@@ -225,7 +214,7 @@
       ],
       sessions: [
         { id: "s1", name: "NEXUS-Dev-Session", status: "Läuft", started: timeNow() },
-        { id: "s2", name: "DeepSeek-Analyse", status: "Bereit", started: timeNow() }
+        { id: "s2", name: "Ollama-Analyse", status: "Bereit", started: timeNow() }
       ],
       skills: Object.fromEntries(SKILL_SEED.map((s) => [s.id, s.enabled])),
       chat: {
@@ -249,7 +238,7 @@
         { id: "a7", time: "14:18:55", type: "rollback", actor: "rollback", text: "mutation #a1b2c3d4" },
         { id: "a8", time: "14:16:02", type: "note", actor: "note_update", text: "Gameplay testen" },
         { id: "a9", time: "14:12:37", type: "system", actor: "system", text: "Server gestartet" },
-        { id: "a10", time: "14:10:22", type: "model", actor: "model_change", text: "deepseek-r1:latest" }
+        { id: "a10", time: "14:10:22", type: "model", actor: "model_change", text: "qwen2.5-coder:1.5b" }
       ],
       connection: { status: "unbekannt", checkedAt: 0, models: DEMO_MODELS },
       terminal: [
@@ -257,7 +246,6 @@
         { kind: "dim", text: "Simulierte Shell · keine echte Codeausführung" },
         { kind: "dim", text: 'Tippe "help" für verfügbare Befehle.' }
       ],
-      customModels: [],
       ui: { projectFilter: "alle", taskFilter: "alle", auditFilter: "alle", noteQuery: "", libraryQuery: "" }
     };
   }
@@ -284,6 +272,12 @@
   } catch {
     state = freshState();
   }
+
+  state.connection.models = (state.connection.models || []).filter((model) => model && typeof model.name === "string" && model.name.trim());
+  const availableModels = state.connection.status === "ok" ? state.connection.models : DEMO_MODELS.filter((model) => model.installed !== false);
+  const availableModelNames = new Set(availableModels.map((model) => model.name));
+  if (!availableModelNames.has(state.settings.model)) state.settings.model = availableModels[0]?.name || "";
+  state.sessions = (state.sessions || []).filter((session) => !/^(DeepSeek|Codex|OpenCode|GitHub Copilot|Copilot|Claude Code)(\b|\s|[-·])/i.test(session.name || ""));
 
   const ui = {
     loopTimer: null,
@@ -641,12 +635,10 @@
     const conn = state.connection;
     const connected = conn.status === "ok";
     const models = modelChoices();
-    const installed = conn.models && conn.models.length ? conn.models : DEMO_MODELS;
-    const activeId = MODEL_SEED.find((m) => m.model === state.settings.model)?.id;
+    const installed = connected ? conn.models || [] : DEMO_MODELS.filter((model) => model.installed !== false);
     return `
-      ${pageHead("KI-Modelle (Routing)", "Provider und lokale Modelle verbinden. Die Verbindung wird direkt über die Ollama-HTTP-API geprüft.", `
+      ${pageHead("Ollama-Modelle", "Lokale Modelle verbinden und auswählen. Die Modellliste wird direkt über die Ollama-HTTP-API geladen.", `
         <button class="btn ghost sm" data-action="test-connection">${icon("refresh")} Verbindung testen</button>
-        <button class="btn primary sm" data-action="new-model">${icon("plus")} Neues Modell</button>
       `)}
       <div class="two-col">
         <div>
@@ -657,20 +649,16 @@
             </div>
             <div class="panel-body">
               <div class="model-list">
-                ${MODEL_SEED.map((m) => modelCard(m, activeId === m.id)).join("")}
-                ${(state.customModels || []).map((m) => modelCard({ id: m.id, name: m.name, sub: m.kind || "Benutzerdefiniert", icon: "cpu", accent: "#8dff48", model: m.name, tags: [m.kind || "Custom"], status: "Bereit" }, state.settings.model === m.name)).join("")}
+                ${MODEL_SEED.map((m) => modelCard({ ...m, model: state.settings.model }, true)).join("")}
               </div>
             </div>
           </div>
 
-          <div class="section-head"><h3>Routing-Regeln</h3><span class="badge">Prototyp</span></div>
+          <div class="section-head"><h3>Modellverwendung</h3><span class="badge green">Nur Ollama</span></div>
           <div class="panel">
             <div class="panel-body">
               <div class="stack">
-                ${routeRule("Strategie & Planung", "Ollama · qwen2.5-coder", "Architektur, Zerlegung", "#8dff48")}
-                ${routeRule("Code & Refactoring", "Codex / OpenCode", "Änderungen, Tests", "#31d8ff")}
-                ${routeRule("Sicherheitsprüfung", "DeepSeek · Reasoning", "Risiko, Freigaben", "#ff5566")}
-                ${routeRule("Recherche", "mcp-duckgo Skill", "Quellen, Vergleiche", "#b379ff")}
+                ${routeRule("Alle Aufgaben", `Ollama · ${state.settings.model}`, "Chat, Entwicklung und Analyse", "#8dff48")}
               </div>
             </div>
           </div>
@@ -742,14 +730,13 @@
   }
 
   function modelChoices() {
-    const fromConn = (state.connection.models || []).map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
-    const known = DEMO_MODELS.map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
-    const custom = (state.customModels || []).map((m) => ({ id: m.name, name: m.name, provider: m.kind || "Custom" }));
-    const extras = MODEL_SEED.filter((m) => !m.model.includes(":")).map((m) => ({ id: m.model, name: m.model, provider: m.name }));
+    const source = state.connection.status === "ok"
+      ? state.connection.models || []
+      : DEMO_MODELS.filter((model) => model.installed !== false);
     const seen = new Set();
-    return [...fromConn, ...known, ...custom, ...extras].filter((m) => {
-      if (!m.name || seen.has(m.name)) return false;
-      seen.add(m.name);
+    return source.map((model) => ({ id: model.name, name: model.name, provider: "Ollama" })).filter((model) => {
+      if (!model.name || seen.has(model.name)) return false;
+      seen.add(model.name);
       return true;
     });
   }
@@ -765,16 +752,6 @@
           <button class="routing-card" data-action="model-select" data-model-id="ollama" data-model-name="${esc(model)}" style="--accent:#8dff48">
             <span class="routing-icon">${icon("cpu")}</span>
             <span class="routing-copy"><strong>Ollama</strong><small>${esc(model)}</small></span>
-            <span class="routing-signal"></span>
-          </button>
-          <button class="routing-card" data-action="open-chat" style="--accent:#b379ff">
-            <span class="routing-icon">${icon("brain")}</span>
-            <span class="routing-copy"><strong>DeepSeek</strong><small>Reasoning</small></span>
-            <span class="routing-signal"></span>
-          </button>
-          <button class="routing-card" data-action="open-more" style="--accent:#8fbcff">
-            <span class="routing-icon">${icon("github")}</span>
-            <span class="routing-copy"><strong>Copilot</strong><small>Code Assist</small></span>
             <span class="routing-signal"></span>
           </button>
         </div>
@@ -1558,12 +1535,13 @@
       const response = await fetch(`${url}/api/tags`, { signal: controller.signal, headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      const models = (data.models || []).map((m) => ({
+      const models = (data.models || []).filter((m) => typeof m.name === "string" && m.name.trim()).map((m) => ({
         name: m.name,
         size: typeof m.size === "number" ? formatBytes(m.size) : m.size || "—",
         installed: true
       }));
-      state.connection = { status: "ok", checkedAt: Date.now(), models: models.length ? models : DEMO_MODELS };
+      state.connection = { status: "ok", checkedAt: Date.now(), models };
+      if (!models.some((model) => model.name === state.settings.model)) state.settings.model = models[0]?.name || "";
       addAudit("system", `Ollama verbunden · ${state.connection.models.length} Modelle`, "system");
       toast("Ollama-Verbindung erfolgreich");
     } catch (error) {
@@ -1746,27 +1724,8 @@
     });
   }
 
-  function openModelModal() {
-    openModal({
-      title: "Neues Modell",
-      eyebrow: "MODELLZENTRALE",
-      body: `<form data-form="model" id="modelForm">
-        <div class="form-grid">
-          <div class="field full"><label for="modelName">Modellname</label><input class="input mono" id="modelName" name="name" required placeholder="z. B. mistral:7b" /></div>
-          <div class="field"><label for="modelKind">Typ</label><select class="select" id="modelKind" name="kind"><option>Ollama</option><option>OpenAI-kompatibel</option><option>Lokal</option><option>Custom</option></select></div>
-          <div class="field"><label for="modelBase">Basis-URL</label><input class="input mono" id="modelBase" name="base" placeholder="http://127.0.0.1:11434" /></div>
-          <div class="field full"><label for="modelNote">Notiz</label><input class="input" id="modelNote" name="note" placeholder="Verwendungszweck (optional)" /></div>
-        </div>
-        <p class="field-hint" style="margin-top:10px">Modelle werden lokal registriert. Installation und Download erfolgen außerhalb des Prototyps über <span class="mono">ollama pull</span>.</p>
-      </form>`,
-      footer: `<button class="btn ghost" data-action="close-modal">Abbrechen</button><button class="btn primary" type="submit" form="modelForm">Hinzufügen</button>`,
-      wide: true
-    });
-  }
-
   function openLaunchModal(providerId) {
     const provider = PROVIDERS.find((p) => p.id === providerId) || PROVIDERS[0];
-    const model = MODEL_SEED.find((m) => m.id === providerId);
     openModal({
       title: `${provider.name} starten`,
       eyebrow: "AGENT STARTEN",
@@ -1779,7 +1738,7 @@
         <hr class="hr" />
         <div class="form-grid">
           <div class="field"><label for="launchAgent">Agent-Profil</label><select class="select" id="launchAgent" name="agent">${agentOptions(provider.agent)}</select></div>
-          <div class="field"><label for="launchModel">Modell</label><select class="select" id="launchModel" name="model">${modelChoices().map((m) => `<option value="${esc(m.name)}" ${m.name === (model?.model || state.settings.model) ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select></div>
+          <div class="field"><label for="launchModel">Modell</label><select class="select" id="launchModel" name="model">${modelChoices().map((m) => `<option value="${esc(m.name)}" ${m.name === state.settings.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select></div>
           <div class="field full"><label for="launchTask">Startauftrag</label><input class="input" id="launchTask" name="task" value="${esc(AGENT_SEED.find((a) => a.id === provider.agent)?.task || "")}" /></div>
         </div>
         <p class="field-hint" style="margin-top:11px">Der Prototyp startet eine simulierte Sitzung. Es werden keine Prozesse ausgeführt und keine Dateien verändert.</p>
@@ -2094,7 +2053,6 @@
       case "new-task": openTaskModal(); break;
       case "new-note": openNoteModal(); break;
       case "new-project": openProjectModal(); break;
-      case "new-model": openModelModal(); break;
       case "toggle-task": toggleTask(el.dataset.task); break;
       case "delete-task": deleteTask(el.dataset.task); break;
       case "task-filter": state.ui.taskFilter = el.dataset.value; save(); renderRoute(); break;
@@ -2144,7 +2102,6 @@
       case "loop-stop": stopLoop(); break;
       case "test-connection": testConnection(); break;
       case "model-select": {
-        const id = el.dataset.modelId;
         const name = el.dataset.modelName;
         state.settings.model = name;
         addAudit("model", `Standardmodell → ${name}`, "model");
@@ -2267,19 +2224,6 @@
       closeModal();
       renderRoute();
       toast("Projekt erstellt");
-      return;
-    }
-    if (type === "model") {
-      const data = new FormData(form);
-      const name = String(data.get("name") || "").trim();
-      if (!name) return;
-      state.customModels = state.customModels || [];
-      state.customModels.push({ id: uid("m"), name, kind: String(data.get("kind") || "Custom"), base: String(data.get("base") || ""), note: String(data.get("note") || "") });
-      addAudit("model", `Modell registriert: ${name}`, "models");
-      save();
-      closeModal();
-      renderRoute();
-      toast("Modell hinzugefügt");
       return;
     }
     if (type === "launch") {
