@@ -464,6 +464,7 @@
         </div>
 
         <aside class="overview-aside home-aside">
+          ${safetyPanel()}
           ${loopPanel()}
           ${focusTaskPanel()}
           <div class="panel">
@@ -521,6 +522,43 @@
           <button class="btn danger" data-action="loop-stop">${icon("stop")} Stop</button>
         </div>
         <p class="field-hint" style="margin-top:9px">Simulation · keine echte Codeausführung. Der Loop speichert nur einen Steuerzustand.</p>
+      </div>`;
+  }
+
+  function safetyPanel() {
+    const safety = state.settings.safety;
+    let endpointIsLocal = false;
+    try {
+      const hostname = new URL(state.settings.ollamaUrl).hostname.toLowerCase();
+      endpointIsLocal = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(hostname);
+    } catch { /* malformed or relative endpoint is not considered local */ }
+
+    const settingRow = (label, enabled) => `
+      <div class="safety-row">
+        <span>${esc(label)}</span>
+        <span class="badge ${enabled ? "orange" : "green"}">${enabled ? "Ein · UI" : "Aus · UI"}</span>
+      </div>`;
+
+    return `
+      <div class="panel safety-panel">
+        <div class="panel-head">
+          <div class="panel-title">${icon("shield")} Sicherheitslage</div>
+          <span class="badge orange">Prototyp</span>
+        </div>
+        <div class="panel-body">
+          <div class="safety-summary">
+            <span class="safety-indicator ${safety.controller ? "enabled" : "disabled"}"></span>
+            <div><strong>${safety.controller ? "Controller-Schalter aktiv" : "Controller-Schalter aus"}</strong><small>Lokale UI-Konfiguration, keine erzwungene Berechtigungsgrenze</small></div>
+          </div>
+          <div class="safety-rows">
+            ${settingRow("Freigabe erforderlich", safety.release)}
+            ${settingRow("Autonomer Modus", safety.autonomous)}
+            ${settingRow("Code-Ausführung", safety.codeExec)}
+            ${settingRow("Netzwerkzugriff", safety.network)}
+            <div class="safety-row"><span>Ollama-Ziel</span><span class="badge ${endpointIsLocal ? "green" : "orange"}">${endpointIsLocal ? "Loopback" : "Benutzerdefiniert"}</span></div>
+          </div>
+          <p class="safety-disclaimer">Schalter werden lokal gespeichert und zeigen nur die gewünschte Einstellung. Der Entwicklungs-Loop ist eine Simulation; riskante Aktionen wie Senden, Löschen oder Bezahlen und echte Bestätigungs-Guards sind nicht implementiert.</p>
+        </div>
       </div>`;
   }
 
@@ -1269,11 +1307,11 @@
 
             <div class="settings-section">
               <h4>${icon("shield")} Sicherheit</h4>
-              ${toggleSetting("Sicherheits-Controller", "Prüft Aktionen vor der Ausführung", "safety.controller", s.safety.controller)}
-              ${toggleSetting("Autonomer Modus", "Erlaubt unbestätigte Loop-Schritte", "safety.autonomous", s.safety.autonomous)}
-              ${toggleSetting("Code-Ausführung", "Shell- und Skriptausführung", "safety.codeExec", s.safety.codeExec)}
-              ${toggleSetting("Netzwerkzugriff", "Externe Endpunkte verwenden", "safety.network", s.safety.network)}
-              ${toggleSetting("Freigabe erforderlich", "Änderungen nur nach Bestätigung", "safety.release", s.safety.release)}
+              ${toggleSetting("Sicherheits-Controller", "Prototyp-Schalter; prüft keine echten Aktionen", "safety.controller", s.safety.controller)}
+              ${toggleSetting("Autonomer Modus", "Prototyp-Einstellung für Loop-Schritte", "safety.autonomous", s.safety.autonomous)}
+              ${toggleSetting("Code-Ausführung", "Vorgabe für eine spätere Ausführungsstufe", "safety.codeExec", s.safety.codeExec)}
+              ${toggleSetting("Netzwerkzugriff", "Vorgabe; begrenzt keine Netzwerkverbindungen", "safety.network", s.safety.network)}
+              ${toggleSetting("Freigabe erforderlich", "UI-Vorgabe; es gibt keine echte Freigabe-Sperre", "safety.release", s.safety.release)}
             </div>
 
             <div class="settings-section">
@@ -1321,7 +1359,7 @@
           </div>
           <div class="panel pad">
             <div class="badge orange">Hinweis</div>
-            <p class="field-hint" style="margin-top:8px">Sicherheits-Schalter sind im Prototyp rein lokal. Sie erzwingen keine echten Berechtigungen und ersetzen keine Sandbox.</p>
+            <p class="field-hint" style="margin-top:8px">Schalter werden lokal im Browser gespeichert. Sie erzwingen weder Berechtigungen noch Freigaben und begrenzen keine Netzwerk- oder Codeausführung. Der Loop ist derzeit nur eine Simulation.</p>
           </div>
         </div>
       </div>`;
