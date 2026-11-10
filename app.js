@@ -8,21 +8,11 @@
   const STORAGE_KEY = "nexus-claw-v741";
 
   const MODEL_SEED = [
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle", "1.5B"], status: "Verbunden", statusKind: "green" },
-    { id: "deepseek", name: "DeepSeek", sub: "Reasoning & Analyse", icon: "brain", accent: "#b379ff", family: "Reasoning", model: "deepseek-r1:latest", tags: ["Text", "Code", "Analyse"], status: "Bereit", statusKind: "green" },
-    { id: "codex", name: "Codex", sub: "OpenAI Agent (lokal/Cloud)", icon: "zap", accent: "#31d8ff", family: "Agent", model: "codex-latest", tags: ["Code", "Agent", "Tools"], status: "Bereit", statusKind: "green" },
-    { id: "opencode", name: "OpenCode", sub: "Autonomer Coding Agent", icon: "code", accent: "#3f8dff", family: "Agent", model: "opencode-latest", tags: ["Code", "Planung", "Ausführung"], status: "Bereit", statusKind: "green" },
-    { id: "copilot", name: "GitHub Copilot", sub: "Assistenz & Vorschläge", icon: "github", accent: "#8fbcff", family: "Assistenz", model: "github-copilot", tags: ["Code", "IDE"], status: "Verbunden", statusKind: "green" },
-    { id: "claude", name: "Claude Code", sub: "KI-Coding Agent", icon: "sparkles", accent: "#ffa53c", family: "Agent", model: "claude-sonnet", tags: ["Code", "Agent"], status: "Bereit", statusKind: "green" }
+    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle", "1.5B"], status: "Verbunden", statusKind: "green" }
   ];
 
   const PROVIDERS = [
-    { id: "claude", name: "Claude Code", sub: "KI-Coding Agent", icon: "sparkles", accent: "#ffa53c", agent: "rick" },
-    { id: "codex", name: "Codex", sub: "OpenAI Agent", icon: "zap", accent: "#31d8ff", agent: "stewie" },
-    { id: "opencode", name: "OpenCode", sub: "Dev Agent", icon: "code", accent: "#3f8dff", agent: "stewie" },
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle", icon: "cpu", accent: "#8dff48", agent: "morty" },
-    { id: "deepseek", name: "DeepSeek", sub: "Reasoning Model", icon: "brain", accent: "#b379ff", agent: "morty" },
-    { id: "copilot", name: "GitHub Copilot", sub: "Code Assist", icon: "github", accent: "#8fbcff", agent: "stewie" }
+    { id: "ollama", name: "Ollama", sub: "Lokale Modelle", icon: "cpu", accent: "#8dff48", agent: "morty" }
   ];
 
   const AGENT_SEED = [
@@ -52,7 +42,6 @@
     { id: "images", name: "image-search", desc: "Bildrecherche mit Größen-, Farb- und Lizenzfiltern.", source: "z0gsh1u/oh-my-writing-skill", tag: "Medien", enabled: true },
     { id: "gauntlet", name: "gauntlet-loop", desc: "Qualitätsbarren, Builder/Critic-Schleifen und blinde Vergleiche.", source: "robonuggets/gauntlet-loop", tag: "Qualität", enabled: true },
     { id: "sketchfab", name: "load-sketchfab-threejs", desc: "GLB-Assets prüfen, normalisieren und in Three.js laden.", source: "local", tag: "3D", enabled: false },
-    { id: "zen", name: "opencode-zen-completions", desc: "OpenAI-kompatible Completions über die OpenCode Zen API.", source: "local", tag: "KI", enabled: true },
     { id: "review", name: "code-review", desc: "Strukturierte Prüfung von Diffs vor der Freigabe.", source: "local", tag: "Entwicklung", enabled: true },
     { id: "test", name: "test-automation", desc: "Testfälle ableiten, ausführen und Fehlerursachen eingrenzen.", source: "local", tag: "Test", enabled: false },
     { id: "audit", name: "audit-export", desc: "Audit-Protokolle filtern und als JSON exportieren.", source: "local", tag: "System", enabled: true }
@@ -71,11 +60,11 @@
   const LOOP_LOG_STAGES = [
     { title: "Planung", time: "20:42", lines: [
       { tag: "NEXUS", text: "Repository analysieren …", end: "OK", tone: "green" },
-      { tag: "DeepSeek", text: "Ziele und Prioritäten gesetzt" },
+      { tag: "Ollama", text: "Ziele und Prioritäten gesetzt" },
       { tag: "Ollama", text: "Modell: qwen2.5-coder:1.5b (lokal)" }
     ] },
     { title: "Code ändern", time: "20:44", lines: [
-      { tag: "OpenCode", text: "Änderungen umgesetzt: 12 Dateien (+642/−38)" },
+      { tag: "Ollama", text: "Änderungen umgesetzt: 12 Dateien (+642/−38)" },
       { tag: "Stewie", text: "Commit: feat: add game logic and test case" },
       { tag: "Stewie", text: "Branch: nexus-dev" }
     ] },
@@ -86,7 +75,7 @@
     ] },
     { title: "Fehlerbehebung", time: "20:46", lines: [
       { tag: "NEXUS", text: "Keine kritischen Fehler" },
-      { tag: "DeepSeek", text: "Code-Review erfolgreich abgeschlossen." }
+      { tag: "Ollama", text: "Code-Review erfolgreich abgeschlossen." }
     ] },
     { title: "Dokumentation", time: "20:46", lines: [
       { tag: "GitHub", text: "Protokoll aktualisiert" }
@@ -225,7 +214,7 @@
       ],
       sessions: [
         { id: "s1", name: "NEXUS-Dev-Session", status: "Läuft", started: timeNow() },
-        { id: "s2", name: "DeepSeek-Analyse", status: "Bereit", started: timeNow() }
+        { id: "s2", name: "Ollama-Analyse", status: "Bereit", started: timeNow() }
       ],
       skills: Object.fromEntries(SKILL_SEED.map((s) => [s.id, s.enabled])),
       chat: {
@@ -249,7 +238,7 @@
         { id: "a7", time: "14:18:55", type: "rollback", actor: "rollback", text: "mutation #a1b2c3d4" },
         { id: "a8", time: "14:16:02", type: "note", actor: "note_update", text: "Gameplay testen" },
         { id: "a9", time: "14:12:37", type: "system", actor: "system", text: "Server gestartet" },
-        { id: "a10", time: "14:10:22", type: "model", actor: "model_change", text: "deepseek-r1:latest" }
+        { id: "a10", time: "14:10:22", type: "model", actor: "model_change", text: "deepseek-r1:1.5b" }
       ],
       connection: { status: "unbekannt", checkedAt: 0, models: DEMO_MODELS },
       terminal: [
@@ -297,6 +286,20 @@
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* storage unavailable */ }
   }
+
+  const savedCustomModels = Array.isArray(state.customModels) ? state.customModels : [];
+  state.customModels = savedCustomModels
+    .filter((model) => model && String(model.kind || "").trim().toLowerCase() === "ollama")
+    .map((model) => ({ ...model, kind: "Ollama" }));
+  const availableOllamaModels = new Set([
+    ...DEMO_MODELS.map((model) => model.name),
+    ...(state.connection.models || []).filter((model) => model && model.name).map((model) => model.name),
+    ...state.customModels.map((model) => model.name)
+  ]);
+  const savedModel = state.settings.model;
+  if (!availableOllamaModels.has(savedModel)) state.settings.model = "qwen2.5-coder:1.5b";
+  const customModelsChanged = state.customModels.length !== savedCustomModels.length || state.customModels.some((model, index) => model.kind !== savedCustomModels[index]?.kind);
+  if (customModelsChanged || state.settings.model !== savedModel) save();
 
   function addAudit(type, text, actor = "system") {
     state.audit.unshift({ id: uid("a"), time: timeNow(), type, actor, text });
@@ -644,7 +647,7 @@
     const installed = conn.models && conn.models.length ? conn.models : DEMO_MODELS;
     const activeId = MODEL_SEED.find((m) => m.model === state.settings.model)?.id;
     return `
-      ${pageHead("KI-Modelle (Routing)", "Provider und lokale Modelle verbinden. Die Verbindung wird direkt über die Ollama-HTTP-API geprüft.", `
+      ${pageHead("Ollama-Modelle (Routing)", "Lokale Ollama-Modelle verwalten und auswählen. Die Verbindung wird direkt über die Ollama-HTTP-API geprüft.", `
         <button class="btn ghost sm" data-action="test-connection">${icon("refresh")} Verbindung testen</button>
         <button class="btn primary sm" data-action="new-model">${icon("plus")} Neues Modell</button>
       `)}
@@ -652,13 +655,13 @@
         <div>
           <div class="panel">
             <div class="panel-head">
-              <div class="panel-title">${icon("cpu")} Modelle & Provider</div>
+              <div class="panel-title">${icon("cpu")} Ollama-Modelle</div>
               <span class="badge ${connected ? "green" : "orange"}">${connected ? "Ollama verbunden" : "Demo-Routing"}</span>
             </div>
             <div class="panel-body">
               <div class="model-list">
                 ${MODEL_SEED.map((m) => modelCard(m, activeId === m.id)).join("")}
-                ${(state.customModels || []).map((m) => modelCard({ id: m.id, name: m.name, sub: m.kind || "Benutzerdefiniert", icon: "cpu", accent: "#8dff48", model: m.name, tags: [m.kind || "Custom"], status: "Bereit" }, state.settings.model === m.name)).join("")}
+                ${(state.customModels || []).map((m) => modelCard({ id: m.id, name: m.name, sub: "Ollama · Benutzerdefiniert", icon: "cpu", accent: "#8dff48", model: m.name, tags: ["Ollama"], status: "Bereit" }, state.settings.model === m.name)).join("")}
               </div>
             </div>
           </div>
@@ -667,10 +670,10 @@
           <div class="panel">
             <div class="panel-body">
               <div class="stack">
-                ${routeRule("Strategie & Planung", "Ollama · qwen2.5-coder", "Architektur, Zerlegung", "#8dff48")}
-                ${routeRule("Code & Refactoring", "Codex / OpenCode", "Änderungen, Tests", "#31d8ff")}
-                ${routeRule("Sicherheitsprüfung", "DeepSeek · Reasoning", "Risiko, Freigaben", "#ff5566")}
-                ${routeRule("Recherche", "mcp-duckgo Skill", "Quellen, Vergleiche", "#b379ff")}
+                ${routeRule("Strategie & Planung", `Ollama · ${state.settings.model}`, "Architektur, Zerlegung", "#8dff48")}
+                ${routeRule("Code & Refactoring", `Ollama · ${state.settings.model}`, "Änderungen, Tests", "#8dff48")}
+                ${routeRule("Sicherheitsprüfung", `Ollama · ${state.settings.model}`, "Risiko, Freigaben", "#8dff48")}
+                ${routeRule("Recherche", `Ollama · ${state.settings.model}`, "Quellen, Vergleiche", "#8dff48")}
               </div>
             </div>
           </div>
@@ -744,7 +747,7 @@
   function modelChoices() {
     const fromConn = (state.connection.models || []).map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
     const known = DEMO_MODELS.map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
-    const custom = (state.customModels || []).map((m) => ({ id: m.name, name: m.name, provider: m.kind || "Custom" }));
+    const custom = (state.customModels || []).map((m) => ({ id: m.name, name: m.name, provider: "Ollama" }));
     const extras = MODEL_SEED.filter((m) => !m.model.includes(":")).map((m) => ({ id: m.model, name: m.model, provider: m.name }));
     const seen = new Set();
     return [...fromConn, ...known, ...custom, ...extras].filter((m) => {
@@ -765,16 +768,6 @@
           <button class="routing-card" data-action="model-select" data-model-id="ollama" data-model-name="${esc(model)}" style="--accent:#8dff48">
             <span class="routing-icon">${icon("cpu")}</span>
             <span class="routing-copy"><strong>Ollama</strong><small>${esc(model)}</small></span>
-            <span class="routing-signal"></span>
-          </button>
-          <button class="routing-card" data-action="open-chat" style="--accent:#b379ff">
-            <span class="routing-icon">${icon("brain")}</span>
-            <span class="routing-copy"><strong>DeepSeek</strong><small>Reasoning</small></span>
-            <span class="routing-signal"></span>
-          </button>
-          <button class="routing-card" data-action="open-more" style="--accent:#8fbcff">
-            <span class="routing-icon">${icon("github")}</span>
-            <span class="routing-copy"><strong>Copilot</strong><small>Code Assist</small></span>
             <span class="routing-signal"></span>
           </button>
         </div>
@@ -1753,7 +1746,7 @@
       body: `<form data-form="model" id="modelForm">
         <div class="form-grid">
           <div class="field full"><label for="modelName">Modellname</label><input class="input mono" id="modelName" name="name" required placeholder="z. B. mistral:7b" /></div>
-          <div class="field"><label for="modelKind">Typ</label><select class="select" id="modelKind" name="kind"><option>Ollama</option><option>OpenAI-kompatibel</option><option>Lokal</option><option>Custom</option></select></div>
+          <div class="field"><label for="modelKind">Provider</label><select class="select" id="modelKind" name="kind"><option>Ollama</option></select></div>
           <div class="field"><label for="modelBase">Basis-URL</label><input class="input mono" id="modelBase" name="base" placeholder="http://127.0.0.1:11434" /></div>
           <div class="field full"><label for="modelNote">Notiz</label><input class="input" id="modelNote" name="note" placeholder="Verwendungszweck (optional)" /></div>
         </div>
@@ -2274,7 +2267,7 @@
       const name = String(data.get("name") || "").trim();
       if (!name) return;
       state.customModels = state.customModels || [];
-      state.customModels.push({ id: uid("m"), name, kind: String(data.get("kind") || "Custom"), base: String(data.get("base") || ""), note: String(data.get("note") || "") });
+      state.customModels.push({ id: uid("m"), name, kind: "Ollama", base: String(data.get("base") || ""), note: String(data.get("note") || "") });
       addAudit("model", `Modell registriert: ${name}`, "models");
       save();
       closeModal();
