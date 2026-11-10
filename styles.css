@@ -776,25 +776,25 @@ body[data-route="loop"] { background: #020504; }
 body[data-route="home"] .ambient,
 body[data-route="loop"] .ambient { opacity: .42; }
 
-/* Login pill */
-.login-pill {
+/* Ollama connection pill */
+.connection-pill {
   gap: 8px; padding: 5px 11px 5px 5px; border-radius: 12px;
   border: 1px solid rgba(141,255,72,0.3);
   background: rgba(141,255,72,0.055); color: var(--text);
   letter-spacing: 0; box-shadow: 0 0 22px rgba(141,255,72,0.06);
 }
-.login-ico {
+.connection-ico {
   display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 auto;
   border-radius: 50%; border: 1px solid rgba(141,255,72,0.32);
   background: radial-gradient(circle at 35% 25%, rgba(141,255,72,0.24), rgba(141,255,72,0.04));
   color: var(--green);
 }
-.login-ico .ico { width: 14px; height: 14px; }
-.login-copy { display: flex; flex-direction: column; line-height: 1.05; }
-.login-copy b { font-size: 7.5px; letter-spacing: 1.35px; color: var(--green); font-weight: 700; }
-.login-copy small { font-size: 10.5px; font-weight: 600; color: #d9e8df; letter-spacing: .2px; margin-top: 1px; }
-.login-pill.warn .login-copy b { color: var(--orange); }
-.login-pill.err .login-copy b { color: var(--red); }
+.connection-ico .ico { width: 14px; height: 14px; }
+.connection-copy { display: flex; flex-direction: column; line-height: 1.05; }
+.connection-copy b { font-size: 7.5px; letter-spacing: 1.1px; color: var(--green); font-weight: 700; }
+.connection-copy small { font-size: 10.5px; font-weight: 600; color: #d9e8df; letter-spacing: .2px; margin-top: 1px; }
+.connection-pill.warn .connection-copy b { color: var(--orange); }
+.connection-pill.err .connection-copy b { color: var(--red); }
 
 /* Home labels */
 .home-label {

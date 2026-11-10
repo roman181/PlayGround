@@ -8,7 +8,7 @@
   const STORAGE_KEY = "nexus-claw-v741";
 
   const MODEL_SEED = [
-    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle", "1.5B"], status: "Verbunden", statusKind: "green" }
+    { id: "ollama", name: "Ollama", sub: "Lokale Modelle verwalten und nutzen", icon: "cpu", accent: "#8dff48", family: "Lokal", model: "qwen2.5-coder:1.5b", tags: ["Lokal", "Modelle", "1.5B"], status: "Nicht geprüft", statusKind: "orange" }
   ];
 
   const PROVIDERS = [
@@ -19,11 +19,11 @@
     { id: "rick", name: "Rick", code: "R", role: "Strategie & Planung", focus: "Strategie und Planung", desc: "Zerlegt Ziele in prüfbare Schritte und priorisiert den nächsten Entwicklungszyklus.", accent: "#8dff48", status: "Bereit", task: "NEXUS Roadmap priorisieren" },
     { id: "peter", name: "Peter", code: "P", role: "Kreativität", focus: "Kreativität", desc: "Erzeugt alternative Lösungswege, UI-Ideen und ungewöhnliche Produktansätze.", accent: "#ffa53c", status: "Bereit", task: "UI-Konzepte für V8" },
     { id: "morty", name: "Morty", code: "M", role: "Recherche", focus: "Recherche", desc: "Sammelt Quellen, vergleicht Ansätze und bereitet technische Entscheidungen auf.", accent: "#31d8ff", status: "Aktiv", task: "Ollama-Modelle vergleichen" },
-    { id: "stewie", name: "Stewie", code: "S", role: "Entwicklung", focus: "Entwicklung", desc: "Plant Codeänderungen, formuliert Tests und dokumentiert technische Schulden.", accent: "#3f8dff", status: "Aktiv", task: "Loop-Grundgerüst prüfen" },
+    { id: "stewie", name: "Stewie", code: "S", role: "Entwicklung", focus: "Entwicklung", desc: "Formuliert Änderungsvorschläge und Prüfpläne; führt keinen Code aus und ändert keine Dateien.", accent: "#3f8dff", status: "Aktiv", task: "Loop-Grundgerüst prüfen" },
     { id: "lois", name: "Lois", code: "L", role: "Organisation", focus: "Organisation", desc: "Hält Aufgaben, Büroräume und Übergaben zwischen Agenten konsistent.", accent: "#ff7fb0", status: "Bereit", task: "Wochenübersicht pflegen" },
     { id: "tree", name: "Happy Tree", code: "H", role: "Ideenentwicklung", focus: "Ideenentwicklung", desc: "Verbindet schwache Signale zu neuen Feature-Ideen und Experimenten.", accent: "#a8ff6a", status: "Bereit", task: "Gameplay-Ideen sammeln" },
-    { id: "evil", name: "Evil Morty", code: "E", role: "Sicherheit", focus: "Sicherheit", desc: "Prüft Berechtigungen, Freigabegrenzen und riskante autonome Aktionen.", accent: "#ff5566", status: "Bereit", task: "Freigabe-Regeln auditieren" },
-    { id: "archive", name: "Archive", code: "A", role: "Archivierung", focus: "Archivierung", desc: "Ordnet Ergebnisse, Snapshots und Entscheidungen im Sandmann Archiv.", accent: "#b379ff", status: "Bereit", task: "Audit-Snapshot anlegen" }
+    { id: "evil", name: "Evil Morty", code: "E", role: "Sicherheit", focus: "Sicherheit", desc: "Prüft Berechtigungen, Freigabegrenzen und Skills vor einer möglichen Aufnahme.", accent: "#ff5566", status: "Bereit", task: "Skill- und Freigabeprüfung" },
+    { id: "archive", name: "Archive", code: "A", role: "Archivierung", focus: "Archivierung", desc: "Ordnet Entscheidungen und hält sichere Lernnotizen ohne Geheimnisse oder ausführbare Inhalte fest.", accent: "#b379ff", status: "Bereit", task: "Lernnotizen prüfen" }
   ];
 
   const ROOM_SEED = [
@@ -33,7 +33,7 @@
     { id: "recherche", num: "04", name: "Recherchebüro", desc: "Quellen, Modellvergleiche und Wissensaufbereitung.", accent: "#31d8ff", occupants: ["M"] },
     { id: "testlabor", num: "05", name: "Testlabor", desc: "Testpläne, Verifikation und reproduzierbare Fehlerbilder.", accent: "#ffd34e", occupants: ["S", "H"] },
     { id: "archiv", num: "06", name: "Sandmann Archiv", desc: "Snapshots, Entscheidungsprotokolle und stabile Meilensteine.", accent: "#b379ff", occupants: ["A"] },
-    { id: "sicherheit", num: "07", name: "Sicherheitsbüro", desc: "Berechtigungen, Freigaben und Grenzen autonomer Aktionen.", accent: "#ff5566", occupants: ["E"] },
+    { id: "sicherheit", num: "07", name: "Sicherheitsbüro", desc: "Prüft Berechtigungen, Skill-Quellen und Freigaben; bei Unklarheit wird gestoppt.", accent: "#ff5566", occupants: ["E"] },
     { id: "privat", num: "08", name: "Persönliches Büro", desc: "Notizen, Favoriten und lokale Arbeitsmittel.", accent: "#ff7fb0", occupants: ["L"] }
   ];
 
@@ -47,38 +47,38 @@
     { id: "audit", name: "audit-export", desc: "Audit-Protokolle filtern und als JSON exportieren.", source: "local", tag: "System", enabled: true }
   ];
 
-  const DEMO_MODELS = [
-    { name: "qwen2.5-coder:1.5b", size: "1.0 GB", installed: true },
-    { name: "deepseek-r1:1.5b", size: "1.1 GB", installed: true },
-    { name: "qwen2.5:3b", size: "1.9 GB", installed: true },
-    { name: "llama3:8b", size: "4.7 GB", installed: true },
-    { name: "nomic-embed-text", size: "274 MB", installed: false }
-  ];
-
   const LOOP_PHASES = ["Analyse", "Planung", "Entwicklung", "Tests", "Fehlerbehebung", "Dokumentation", "Lernen"];
+  const LOCKED_SAFETY_SETTINGS = new Set(["safety.controller", "safety.autonomous", "safety.codeExec", "safety.network", "safety.release"]);
+  const REQUIRED_SAFETY_VALUES = { controller: true, autonomous: false, codeExec: false, network: false, release: true };
 
   const LOOP_LOG_STAGES = [
-    { title: "Planung", time: "20:42", lines: [
-      { tag: "NEXUS", text: "Repository analysieren …", end: "OK", tone: "green" },
-      { tag: "Ollama", text: "Ziele und Prioritäten mit lokalem Modell bewertet" },
-      { tag: "Ollama", text: "Modell: qwen2.5-coder:1.5b (lokal)" }
+    { title: "Analyse", time: "20:42", lines: [
+      { tag: "NEXUS", text: "Ziel, Projektkontext und offene Aufgaben strukturieren (Demo)" },
+      { tag: "Morty", text: "Annahmen und fehlende Informationen markieren" }
     ] },
-    { title: "Code ändern", time: "20:44", lines: [
-      { tag: "Ollama", text: "Änderungsvorschläge vorbereitet (Simulation)" },
-      { tag: "Stewie", text: "Commit: feat: add game logic and test case" },
-      { tag: "Stewie", text: "Branch: nexus-dev" }
+    { title: "Planung", time: "20:43", lines: [
+      { tag: "Rick", text: "Kleine, prüfbare Schritte und Abnahmekriterien vorschlagen" },
+      { tag: "Gate", text: "Plan anzeigen und auf menschliche Freigabe warten" }
     ] },
-    { title: "Tests ausführen", time: "20:45", lines: [
-      { tag: "Unity", text: "10/10 Tests bestanden (Gameplay)", end: "✓", tone: "green" },
-      { tag: "Performance", text: "FPS: 60  |  Memory: 512 MB" },
-      { tag: "E2E", text: "Keine Fehler gefunden" }
+    { title: "Entwicklung", time: "20:44", lines: [
+      { tag: "Stewie", text: "Änderungsvorschlag vorbereiten · keine Dateien werden geändert" },
+      { tag: "Gate", text: "Vorschlag wartet auf Sicherheitsprüfung und menschliche Freigabe" }
+    ] },
+    { title: "Tests", time: "20:45", lines: [
+      { tag: "Testlabor", text: "Prüfplan und erwartete Ergebnisse skizzieren (Demo)" },
+      { tag: "Hinweis", text: "Es werden keine Tests oder Befehle ausgeführt" }
     ] },
     { title: "Fehlerbehebung", time: "20:46", lines: [
-      { tag: "NEXUS", text: "Keine kritischen Fehler" },
-      { tag: "Ollama", text: "Code-Review erfolgreich abgeschlossen (Simulation)." }
+      { tag: "Evil Morty", text: "Risiken, Berechtigungen und Freigabegrenzen prüfen" },
+      { tag: "Gate", text: "Bei unklaren Risiken: stoppen und Rückfrage stellen" }
     ] },
-    { title: "Dokumentation", time: "20:46", lines: [
-      { tag: "GitHub", text: "Protokoll aktualisiert" }
+    { title: "Dokumentation", time: "20:47", lines: [
+      { tag: "Lois", text: "Entscheidungen, offene Punkte und Übergabe festhalten" },
+      { tag: "Archive", text: "Audit-Eintrag vorbereiten · lokal" }
+    ] },
+    { title: "Lernen", time: "20:48", lines: [
+      { tag: "NEXUS", text: "Ergebnis gegen Abnahmekriterien spiegeln (Simulation)" },
+      { tag: "Archive", text: "Sichere Lernnotiz vorschlagen: keine Geheimnisse, Tokens oder ausführbaren Inhalte" }
     ] }
   ];
 
@@ -213,7 +213,7 @@
         { id: "p5", name: "Experimente", type: "Diverses", status: "Archiv", language: "Mixed", updated: "2026-10-10", progress: 100, accent: "#6f8989", icon: "archive", desc: "Archivierte Prototypen und verworfene Ansätze." }
       ],
       sessions: [
-        { id: "s1", name: "Ollama · NEXUS-Dev-Session", status: "Läuft", started: timeNow() }
+        { id: "s1", name: "Ollama · NEXUS-Dev-Session", status: "Demo", started: timeNow() }
       ],
       skills: Object.fromEntries(SKILL_SEED.map((s) => [s.id, s.enabled])),
       chat: {
@@ -228,18 +228,18 @@
         steps: ["Projekt analysieren", "Code-Änderungen erstellen", "Tests ausführen", "Fehler beheben"]
       },
       audit: [
-        { id: "a1", time: "14:35:12", type: "mutation", actor: "Rick", text: "/ Portal-Mathe Lv. 8 → 9" },
-        { id: "a2", time: "14:33:45", type: "note", actor: "note_create", text: "Unity Project eingerichtet" },
-        { id: "a3", time: "14:31:27", type: "personality", actor: "personality_change", text: "Morty → rotzig" },
-        { id: "a4", time: "14:28:11", type: "test", actor: "test_run", text: "18/18 Tests erfolgreich" },
-        { id: "a5", time: "14:24:09", type: "code", actor: "code_change", text: "game_logic.py (#42/38)" },
-        { id: "a6", time: "14:20:33", type: "safety", actor: "safety_change", text: "Freigaberegeln aktiviert" },
-        { id: "a7", time: "14:18:55", type: "rollback", actor: "rollback", text: "mutation #a1b2c3d4" },
-        { id: "a8", time: "14:16:02", type: "note", actor: "note_update", text: "Gameplay testen" },
-        { id: "a9", time: "14:12:37", type: "system", actor: "system", text: "Server gestartet" },
-        { id: "a10", time: "14:10:22", type: "model", actor: "model_change", text: "qwen2.5-coder:1.5b · Ollama" }
+        { id: "a1", time: "14:35:12", type: "mutation", actor: "Demo", text: "Beispielmutation · nicht ausgeführt" },
+        { id: "a2", time: "14:33:45", type: "note", actor: "Demo", text: "Beispielnotiz · keine Projektdatei geändert" },
+        { id: "a3", time: "14:31:27", type: "personality", actor: "Demo", text: "Beispieländerung · nur simuliert" },
+        { id: "a4", time: "14:28:11", type: "test", actor: "Demo", text: "Beispiel-Prüfplan · keine Tests ausgeführt" },
+        { id: "a5", time: "14:24:09", type: "code", actor: "Demo", text: "Beispieländerung · kein Code geändert" },
+        { id: "a6", time: "14:20:33", type: "safety", actor: "Demo", text: "Freigabe-Gate als Demo dargestellt" },
+        { id: "a7", time: "14:18:55", type: "rollback", actor: "Demo", text: "Beispiel-Rollback · nicht ausgeführt" },
+        { id: "a8", time: "14:16:02", type: "note", actor: "Demo", text: "Beispiel-Lernnotiz · nicht übernommen" },
+        { id: "a9", time: "14:12:37", type: "system", actor: "Demo", text: "Beispiel-Systemereignis · kein Server gestartet" },
+        { id: "a10", time: "14:10:22", type: "model", actor: "Demo", text: "Ollama-Modell-Auswahl als Beispiel" }
       ],
-      connection: { status: "unbekannt", checkedAt: 0, models: DEMO_MODELS },
+      connection: { status: "unbekannt", checkedAt: 0, models: [] },
       terminal: [
         { kind: "sys", text: "NEXUS CLAW · Horus Linux Runtime v7.4.1" },
         { kind: "dim", text: "Simulierte Shell · keine echte Codeausführung" },
@@ -272,13 +272,11 @@
   } catch {
     state = freshState();
   }
+  Object.assign(state.settings.safety, REQUIRED_SAFETY_VALUES);
   state.customModels = (state.customModels || []).filter((model) => String(model.kind || "Ollama").toLowerCase() === "ollama");
-  const availableModels = new Set([
-    ...DEMO_MODELS.map((model) => model.name),
-    ...(state.connection.models || []).map((model) => model.name),
-    ...state.customModels.map((model) => model.name)
-  ]);
-  if (!availableModels.has(state.settings.model)) state.settings.model = "qwen2.5-coder:1.5b";
+  // A stored result is not proof of a current connection; require a fresh connection test per page load.
+  state.connection = { status: "unbekannt", checkedAt: 0, models: [] };
+  if (typeof state.settings.model !== "string" || !state.settings.model.trim()) state.settings.model = "qwen2.5-coder:1.5b";
   save();
 
   const ui = {
@@ -384,11 +382,10 @@
     const pill = $("#onlinePill");
     const label = $("#onlineLabel");
     if (!pill || !label) return;
-    const online = navigator.onLine;
-    const running = state.loop.running && !state.loop.paused;
-    label.textContent = running ? "RUNNING" : online ? "ONLINE" : "OFFLINE";
-    pill.classList.toggle("err", !online);
-    pill.classList.toggle("warn", online && running);
+    const status = state.connection.status;
+    label.textContent = status === "ok" ? "OLLAMA OK" : status === "error" ? "OLLAMA FEHLER" : "OLLAMA UNGEPRÜFT";
+    pill.classList.toggle("err", status === "error");
+    pill.classList.toggle("warn", status !== "ok" && status !== "error");
   }
 
   function pageHead(title, sub, actions = "") {
@@ -624,7 +621,7 @@
             <a class="btn ghost sm block" style="margin-top:10px" href="#/tasks">Aufgaben öffnen ${icon("arrow-right")}</a>
           </div>
           <div class="panel pad">
-            <div class="between"><span class="panel-title">${icon("activity")} Audit</span><span class="badge green"><span class="dot"></span> Live</span></div>
+            <div class="between"><span class="panel-title">${icon("activity")} Audit</span><span class="badge orange"><span class="dot"></span> Lokal · Demo</span></div>
             <p class="field-hint" style="margin-top:8px">${state.audit.length} lokale Ereignisse protokolliert.</p>
             <a class="btn ghost sm block" style="margin-top:10px" href="#/audit">Protokoll öffnen ${icon("arrow-right")}</a>
           </div>
@@ -767,17 +764,17 @@
         <div class="console-shell">
           <div class="console-head">
             <span class="console-title">${icon("terminal")} nexus@claw:~/NeinGames</span>
-            <span class="badge ${loop.running ? (loop.paused ? "orange" : "green") : ""}" id="loopConsoleBadge"><span class="dot"></span> ${loop.running ? (loop.paused ? "Pausiert" : "Loop läuft") : "Autonomous Loop"}</span>
+            <span class="badge ${loop.running ? (loop.paused ? "orange" : "green") : ""}" id="loopConsoleBadge"><span class="dot"></span> ${loop.running ? (loop.paused ? "Simulation pausiert" : "Simulation läuft") : "Loop-Simulation"}</span>
             <button class="icon-btn console-menu" data-action="loop-menu" aria-label="Loop-Menü">${icon("kebab")}</button>
           </div>
           <div class="console-body">
             <div class="loop-log" id="loopLog">${loopLogStages(loop)}</div>
             <div id="loopBanner">${loopBanner(loop)}</div>
             <div class="last-output">
-              <div class="last-output-head">Letzte Ausgabe</div>
-              <div class="last-output-line"><span class="out-check">${icon("check")}</span> <span>Commit: <b>feat: add game logic and test case</b></span></div>
-              <div class="last-output-line"><span class="out-check">${icon("check")}</span> <span>Branch: <b>nexus-dev</b> · Tests: <b>10/10</b></span></div>
-              <div class="last-output-line"><span class="out-check">${icon("check")}</span> <span>Audit: <b>${state.audit.length}</b> Ereignisse · Simulation</span></div>
+              <div class="last-output-head">Demo-Ausgabe · keine echte Ausführung</div>
+              <div class="last-output-line"><span class="out-check">${icon("info")}</span> <span>Vorschlag: <b>Plan und Abnahmekriterien prüfen</b></span></div>
+              <div class="last-output-line"><span class="out-check">${icon("info")}</span> <span>Keine Commits, Branches, Codeänderungen oder Tests</span></div>
+              <div class="last-output-line"><span class="out-check">${icon("info")}</span> <span>Audit-Beispiele: <b>${state.audit.length}</b> · lokale Demo-Daten</span></div>
             </div>
             <div class="console-prompt">
               <span class="prompt-user">nexus@claw</span><span class="prompt-path">:~/NeinGames</span><span class="prompt-caret"></span>
@@ -826,7 +823,7 @@
     if (loop.progress >= 100) {
       return `<div class="loop-success">
         <span class="success-check">${icon("check")}</span>
-        <span class="success-copy"><strong>Zyklus erfolgreich abgeschlossen!</strong><small>Simulation · keine echten Änderungen</small></span>
+        <span class="success-copy"><strong>Demo-Zyklus durchgespielt</strong><small>Nur Fortschrittsanzeige · keine Aufgabe erledigt und keine Änderungen ausgeführt</small></span>
         <span class="success-cycle">${icon("refresh")} Zyklus ${loop.cycle}/${loop.total}</span>
       </div>`;
     }
@@ -966,8 +963,8 @@
   function renderSkills() {
     const enabled = SKILL_SEED.filter((s) => state.skills[s.id]).length;
     return `
-      ${pageHead("Skills", "Lokale und mitgelieferte Fähigkeiten. Aktivierung ist im Prototyp nur ein lokaler Schalter.", `
-        <span class="badge green">${enabled} aktiv</span>
+      ${pageHead("Skills", "Skill-Schalter ändern nur eine lokale Demo-Auswahl; es wird nichts geladen oder ausgeführt.", `
+        <span class="badge green">${enabled} ausgewählt · Demo</span>
       `)}
       <div class="note-grid">
         ${SKILL_SEED.map((s) => {
@@ -982,6 +979,16 @@
             <div class="note-foot"><span class="mono">${esc(s.source)}</span><span class="spacer"></span><span class="badge ${on ? "green" : ""}">${on ? "Aktiv" : "Inaktiv"}</span></div>
           </div>`;
         }).join("")}
+      </div>
+      <div class="two-col" style="margin-top:16px">
+        <div class="panel pad">
+          <div class="panel-title">Skill-Aufnahmeprüfung</div>
+          <p class="field-hint" style="margin-top:8px">Vor einer tatsächlichen Aufnahme: Quelle und Lizenz prüfen, Berechtigungen und Netzwerkbedarf benennen, Geheimnisse sowie ausführbare Inhalte suchen und Risiken durch Sicherheitsprüfung bewerten. Aufnahme nur nach menschlicher Freigabe.</p>
+        </div>
+        <div class="panel pad">
+          <div class="panel-title">Sichere Lernnotizen</div>
+          <p class="field-hint" style="margin-top:8px">Nur allgemeine Erkenntnisse und offene Fragen vorschlagen. Keine Tokens, Passwörter, privaten Daten oder ausführbaren Code übernehmen. Notizen bleiben Vorschläge, bis ein Mensch sie prüft.</p>
+        </div>
       </div>`;
   }
 
@@ -1336,9 +1343,10 @@
   }
 
   function toggleSetting(label, hint, key, on) {
+    const locked = LOCKED_SAFETY_SETTINGS.has(key);
     return `<div class="setting-row">
-      <div class="setting-copy"><strong>${esc(label)}</strong><small>${esc(hint)}</small></div>
-      <button class="switch ${on ? "on" : ""}" data-action="toggle-setting" data-setting-key="${key}" aria-pressed="${on}" aria-label="${esc(label)} ${on ? "deaktivieren" : "aktivieren"}"></button>
+      <div class="setting-copy"><strong>${esc(label)}${locked ? " · festgesetzt" : ""}</strong><small>${esc(hint)}${locked ? " · Sicherheitsgrenze kann hier nicht geändert werden." : ""}</small></div>
+      <button class="switch ${on ? "on" : ""}" data-action="toggle-setting" data-setting-key="${key}" aria-pressed="${on}" aria-label="${esc(label)} ${locked ? "festgesetzt" : (on ? "deaktivieren" : "aktivieren")}" ${locked ? "disabled" : ""}></button>
     </div>`;
   }
 
@@ -1348,11 +1356,11 @@
     const filters = ["alle", "mutation", "code", "test", "safety", "system"];
     const list = state.audit.filter((a) => filter === "alle" ? true : a.type === filter);
     return `
-      ${pageHead("Audit-Protokoll", "Alle Ereignisse werden lokal gespeichert. Einträge entstehen durch Aktionen im Prototyp.", `<button class="btn danger sm" data-action="clear-audit">${icon("trash")} Leeren</button>`)}
+      ${pageHead("Audit-Protokoll", "Lokal gespeicherte Prototyp-Ereignisse. Die initialen Beispieldaten sind simuliert und keine Ausführungsnachweise.", `<button class="btn danger sm" data-action="clear-audit">${icon("trash")} Leeren</button>`)}
       <div class="library-toolbar">
         ${filters.map((key) => `<button class="chip ${filter === key ? "active" : ""}" data-action="audit-filter" data-value="${key}">${key === "alle" ? "Alle" : key} <span class="count">${state.audit.filter((a) => key === "alle" ? true : a.type === key).length}</span></button>`).join("")}
         <span class="spacer"></span>
-        <span class="badge green"><span class="dot"></span> Live</span>
+        <span class="badge orange"><span class="dot"></span> Lokal · Demo</span>
       </div>
       <div class="panel">
         <div class="panel-body" id="auditFeed">
@@ -2111,10 +2119,10 @@
         const id = el.dataset.skill;
         state.skills[id] = !state.skills[id];
         const s = SKILL_SEED.find((x) => x.id === id);
-        addAudit("system", `Skill ${state.skills[id] ? "aktiviert" : "deaktiviert"}: ${s?.name || id}`, "skills");
+        addAudit("system", `Demo-Auswahl ${state.skills[id] ? "markiert" : "entfernt"}: ${s?.name || id} · keine Skill-Aufnahme`, "skills");
         save();
         renderRoute();
-        toast(`Skill ${state.skills[id] ? "aktiviert" : "deaktiviert"}`);
+        toast(`Demo-Auswahl ${state.skills[id] ? "markiert" : "entfernt"} · keine Aufnahme`);
         break;
       }
       case "audit-filter": state.ui.auditFilter = el.dataset.value; save(); renderRoute(); break;
@@ -2139,14 +2147,14 @@
       }
       case "toggle-setting": {
         const path = el.dataset.settingKey;
-        const parts = path.split(".");
-        let obj = state.settings;
-        for (let i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
-        obj[parts[parts.length - 1]] = !obj[parts[parts.length - 1]];
-        addAudit("safety", `${path} → ${obj[parts[parts.length - 1]] ? "an" : "aus"}`, "settings");
-        save();
-        renderRoute();
-        toast("Einstellung gespeichert");
+        if (LOCKED_SAFETY_SETTINGS.has(path)) {
+          Object.assign(state.settings.safety, REQUIRED_SAFETY_VALUES);
+          save();
+          toast("Sicherheitsgrenzen sind festgesetzt und können nicht deaktiviert werden.", "warn");
+          renderRoute();
+          break;
+        }
+        toast("Unbekannte Einstellung wurde abgewiesen.", "warn");
         break;
       }
       case "reset-data": confirmModal("Lokale Daten zurücksetzen", "Alle Aufgaben, Notizen, Sitzungen und Einstellungen werden durch die Demo-Daten ersetzt.", "confirm-reset", "Zurücksetzen"); break;
